@@ -177,6 +177,20 @@ app.post("/enhance-prompt", async (req, res) => {
   }
 });
 
+let requests = {};
+
+app.use((req, res, next) => {
+  const ip = req.ip;
+
+  requests[ip] = requests[ip] || 0;
+  requests[ip]++;
+
+  if (requests[ip] > 20) {
+    return res.status(429).json({ error: "Too many requests" });
+  }
+
+  next();
+});
 
 // =========================
 // SERVE FRONTEND

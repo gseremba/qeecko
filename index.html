@@ -3,6 +3,9 @@
 <head>
   <title>Qeecko AI</title>
 
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <style>
     body {
       margin: 0;
@@ -19,86 +22,51 @@
       padding: 20px;
     }
 
-    h1 {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-
     .card {
       background: #1e293b;
       padding: 20px;
       border-radius: 12px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      margin-top: 20px;
     }
 
     input, select {
       width: 100%;
-      padding: 12px;
+      padding: 10px;
+      margin-top: 10px;
       border-radius: 8px;
       border: none;
-      margin-bottom: 10px;
-      font-size: 14px;
     }
 
     button {
-      padding: 12px 16px;
-      border: none;
+      margin-top: 10px;
+      padding: 10px;
       border-radius: 8px;
+      border: none;
       cursor: pointer;
-      font-weight: bold;
-      margin-right: 10px;
     }
 
-    .primary {
-      background: #6366f1;
-      color: white;
-    }
-
-    .secondary {
-      background: #334155;
-      color: white;
-    }
-
-    .row {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
+    .primary { background: #6366f1; color: white; }
+    .secondary { background: #334155; color: white; }
 
     .image-wrapper {
-      margin-top: 20px;
       position: relative;
+      margin-top: 20px;
     }
 
     #image {
       width: 100%;
       border-radius: 10px;
       opacity: 0;
-      transition: opacity 0.5s ease;
+      transition: opacity 0.5s;
     }
 
-    #image.show {
-      opacity: 1;
-    }
+    #image.show { opacity: 1; }
 
     #placeholder {
       position: absolute;
       inset: 0;
       background: #475569;
       filter: blur(10px);
-      animation: pulse 1.5s infinite;
-      border-radius: 10px;
-      display: none;
-    }
-
-    @keyframes pulse {
-      0% { opacity: 0.6; }
-      50% { opacity: 1; }
-      100% { opacity: 0.6; }
-    }
-
-    #downloadBtn {
-      margin-top: 10px;
       display: none;
     }
 
@@ -118,12 +86,11 @@
     .suggestions-box {
       background: #1e293b;
       border-radius: 8px;
-      margin-top: 5px;
       display: none;
     }
 
     .suggestion-item {
-      padding: 10px;
+      padding: 8px;
       cursor: pointer;
     }
 
@@ -136,300 +103,243 @@
 <body>
 
 <div class="container">
-  <h1>🚀 Qeecko AI Generator</h1>
 
-  <div class="card">
+  <!-- AUTH -->
+  <div id="auth" class="card">
+    <h2>Login to Qeecko</h2>
 
-    <input id="prompt" placeholder="Describe your image..." oninput="showSuggestions()" />
-    <div id="suggestions" class="suggestions-box"></div>
+    <input id="email" placeholder="Email" />
+    <input id="password" type="password" placeholder="Password" />
 
-    <select id="style">
-      <option value="">Default</option>
-      <option value="cinematic">Cinematic</option>
-      <option value="anime">Anime</option>
-      <option value="realistic">Realistic</option>
-      <option value="fantasy">Fantasy</option>
-      <option value="cyberpunk">Cyberpunk</option>
-    </select>
+    <button class="primary" onclick="signUp()">Sign Up</button>
+    <button class="secondary" onclick="login()">Login</button>
 
-    <div class="row">
-      <button class="primary" onclick="generate()">Generate</button>
-      <button class="secondary" onclick="enhancePrompt()">✨ Enhance</button>
-      <button class="secondary" onclick="downloadImage()" id="downloadBtn">⬇ Download</button>
-    </div>
-
-    <div class="image-wrapper">
-      <img id="image" />
-      <div id="placeholder"></div>
-    </div>
-
+    <p id="authStatus"></p>
   </div>
 
-  <h2>History</h2>
-  <div id="gallery" class="gallery"></div>
+  <!-- APP -->
+  <div id="app" style="display:none;">
+
+    <div class="card">
+      <h2>🚀 Qeecko AI Generator</h2>
+
+      <button onclick="logout()">Logout</button>
+
+      <input id="prompt" placeholder="Describe your image..." oninput="showSuggestions()" />
+      <div id="suggestions" class="suggestions-box"></div>
+
+      <select id="style">
+        <option value="">Default</option>
+        <option value="cinematic">Cinematic</option>
+        <option value="anime">Anime</option>
+        <option value="realistic">Realistic</option>
+        <option value="fantasy">Fantasy</option>
+        <option value="cyberpunk">Cyberpunk</option>
+      </select>
+
+      <button class="primary" onclick="generate()">Generate</button>
+      <button class="secondary" onclick="enhancePrompt()">✨ Enhance</button>
+      <button id="downloadBtn" onclick="downloadImage()" style="display:none;">⬇ Download</button>
+
+      <div class="image-wrapper">
+        <img id="image" />
+        <div id="placeholder"></div>
+      </div>
+    </div>
+
+    <h3>History</h3>
+    <div id="gallery" class="gallery"></div>
+
+  </div>
 
 </div>
 
 <script>
 
 // =========================
-// GLOBALS
+// 🔑 INSERT YOUR KEYS HERE
 // =========================
-let debounceTimer;
+const supabaseUrl = "https://mfimqzwkcoiwsvfqurep.supabase.co";
+const supabaseKey = "sb_publishable_N_dMUbzlo3LTJyDqmTwWYw_NM15fAEW";
+
+const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+
+// =========================
+// AUTH
+// =========================
+async function signUp() {
+  const email = emailEl.value;
+  const password = passwordEl.value;
+
+  const { error } = await supabase.auth.signUp({ email, password });
+
+  authStatus.innerText = error ? error.message : "Check your email!";
+}
+
+async function login() {
+  const email = emailEl.value;
+  const password = passwordEl.value;
+
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
+
+  if (error) {
+    authStatus.innerText = error.message;
+    return;
+  }
+
+  showApp();
+}
+
+async function logout() {
+  await supabase.auth.signOut();
+  location.reload();
+}
+
+async function checkUser() {
+  const { data } = await supabase.auth.getUser();
+  if (data.user) showApp();
+}
+
+function showApp() {
+  document.getElementById("auth").style.display = "none";
+  document.getElementById("app").style.display = "block";
+}
 
 
 // =========================
 // GENERATE IMAGE
 // =========================
 async function generate() {
-  const prompt = document.getElementById("prompt").value;
-  const imageEl = document.getElementById("image");
-  const placeholder = document.getElementById("placeholder");
-  const downloadBtn = document.getElementById("downloadBtn");
+  const { data } = await supabase.auth.getUser();
+  if (!data.user) return alert("Login first");
 
-  if (!prompt) {
-    alert("Please enter a prompt");
-    return;
-  }
+  const prompt = promptEl.value;
 
-  // UI reset
-  imageEl.classList.remove("show");
-  imageEl.src = "";
   placeholder.style.display = "block";
-  downloadBtn.style.display = "none";
+  image.classList.remove("show");
 
-  try {
-    const res = await fetch("/generate-image", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ prompt })
-    });
+  const res = await fetch("/generate-image", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({ prompt })
+  });
 
-    const data = await res.json();
-    console.log("GEN RESPONSE:", data);
+  const dataRes = await res.json();
+  const img = dataRes.data?.[0]?.url || `data:image/png;base64,${dataRes.data?.[0]?.b64_json}`;
 
-    if (!res.ok) {
-      alert(data.error || "Generation failed");
-      placeholder.style.display = "none";
-      return;
-    }
+  image.src = img;
+  saveToHistory(img);
 
-    const imageUrl = data.data?.[0]?.url;
-    const base64 = data.data?.[0]?.b64_json;
-
-    const finalImage = imageUrl || (base64 ? `data:image/png;base64,${base64}` : null);
-
-    if (!finalImage) {
-      alert("No image returned");
-      placeholder.style.display = "none";
-      return;
-    }
-
-    imageEl.src = finalImage;
-
-	// 👉 SAVE IMMEDIATELY (reliable)
-	saveToHistory(finalImage);
-
-	// UI effects
-	imageEl.onload = () => {
-	  placeholder.style.display = "none";
-	  imageEl.classList.add("show");
-	  downloadBtn.style.display = "inline-block";
-	};
-
-  } catch (err) {
-    console.error("ERROR:", err);
-    alert("Network error: " + err.message);
+  image.onload = () => {
     placeholder.style.display = "none";
-  }
+    image.classList.add("show");
+    downloadBtn.style.display = "block";
+  };
 }
 
 
 // =========================
-// PROMPT ENHANCER
+// ENHANCE
 // =========================
 async function enhancePrompt() {
-  const inputEl = document.getElementById("prompt");
-  const prompt = inputEl.value;
-  const style = document.getElementById("style").value;
+  const res = await fetch("/enhance-prompt", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({ input: promptEl.value, style: style.value })
+  });
 
-  if (!prompt) {
-    alert("Enter a prompt first");
-    return;
-  }
+  const data = await res.json();
+  promptEl.value = data.enhanced;
+}
 
-  inputEl.value = "Enhancing... ✨";
 
-  try {
-    const res = await fetch("/enhance-prompt", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ input: prompt, style })
+// =========================
+// SUGGESTIONS
+// =========================
+let timer;
+function showSuggestions() {
+  clearTimeout(timer);
+
+  timer = setTimeout(async () => {
+    const res = await fetch("/suggest-prompts", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ input: promptEl.value })
     });
 
     const data = await res.json();
+    suggestions.innerHTML = "";
 
-    if (!data.enhanced) {
-      inputEl.value = prompt;
-      alert("Enhancement failed");
-      return;
-    }
+    data.suggestions.forEach(s => {
+      const div = document.createElement("div");
+      div.className = "suggestion-item";
+      div.innerText = s;
+      div.onclick = () => {
+        promptEl.value = s;
+        suggestions.style.display = "none";
+      };
+      suggestions.appendChild(div);
+    });
 
-    inputEl.value = data.enhanced;
-
-  } catch (err) {
-    console.error(err);
-    inputEl.value = prompt;
-    alert("Error enhancing prompt");
-  }
+    suggestions.style.display = "block";
+  }, 300);
 }
 
 
 // =========================
-// AI SUGGESTIONS (DEBOUNCED)
-// =========================
-async function showSuggestions() {
-  const input = document.getElementById("prompt").value;
-  const box = document.getElementById("suggestions");
-
-  clearTimeout(debounceTimer);
-
-  if (!input) {
-    box.style.display = "none";
-    return;
-  }
-
-  debounceTimer = setTimeout(async () => {
-    try {
-      const res = await fetch("/suggest-prompts", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ input })
-      });
-
-      const data = await res.json();
-      const suggestions = data.suggestions || [];
-
-      box.innerHTML = "";
-
-      if (suggestions.length === 0) {
-        box.style.display = "none";
-        return;
-      }
-
-      suggestions.forEach(item => {
-        const div = document.createElement("div");
-        div.className = "suggestion-item";
-        div.textContent = item;
-
-        div.onclick = () => {
-          document.getElementById("prompt").value = item;
-          box.style.display = "none";
-        };
-
-        box.appendChild(div);
-      });
-
-      box.style.display = "block";
-
-    } catch (err) {
-      console.error("Suggestion error:", err);
-    }
-  }, 400);
-}
-
-
-// =========================
-// DOWNLOAD IMAGE
+// DOWNLOAD
 // =========================
 async function downloadImage() {
-  const img = document.getElementById("image");
+  const res = await fetch(image.src);
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
 
-  if (!img.src) {
-    alert("No image to download");
-    return;
-  }
-
-  try {
-    const response = await fetch(img.src);
-    const blob = await response.blob();
-
-    const url = window.URL.createObjectURL(blob);
-
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "qeecko-image.png";
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-
-    window.URL.revokeObjectURL(url);
-  } catch (err) {
-    console.error(err);
-    alert("Download failed");
-  }
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "qeecko.png";
+  a.click();
 }
 
 
 // =========================
-// IMAGE HISTORY
+// HISTORY
 // =========================
-function saveToHistory(imageUrl) {
-  let history = JSON.parse(localStorage.getItem("imageHistory")) || [];
-
-  history.unshift(imageUrl);
-  history = history.slice(0, 20);
-
-  localStorage.setItem("imageHistory", JSON.stringify(history));
+function saveToHistory(img) {
+  let h = JSON.parse(localStorage.getItem("h")) || [];
+  h.unshift(img);
+  localStorage.setItem("h", JSON.stringify(h));
   renderGallery();
 }
 
 function renderGallery() {
-  const gallery = document.getElementById("gallery");
-  const history = JSON.parse(localStorage.getItem("imageHistory")) || [];
-
+  const h = JSON.parse(localStorage.getItem("h")) || [];
   gallery.innerHTML = "";
-
-  history.forEach(src => {
+  h.forEach(src => {
     const img = document.createElement("img");
     img.src = src;
-
-    img.onclick = () => {
-      const main = document.getElementById("image");
-      main.src = src;
-      main.classList.add("show");
-    };
-
+    img.onclick = () => image.src = src;
     gallery.appendChild(img);
   });
 }
 
 
 // =========================
-// CLOSE SUGGESTIONS ON CLICK OUTSIDE
-// =========================
-document.addEventListener("click", (e) => {
-  const box = document.getElementById("suggestions");
-  const input = document.getElementById("prompt");
-
-  if (!box.contains(e.target) && e.target !== input) {
-    box.style.display = "none";
-  }
-});
-
-
-// =========================
 // INIT
 // =========================
-window.onload = () => {
-  renderGallery();
-};
+const emailEl = document.getElementById("email");
+const passwordEl = document.getElementById("password");
+const authStatus = document.getElementById("authStatus");
+const promptEl = document.getElementById("prompt");
+const suggestions = document.getElementById("suggestions");
+const image = document.getElementById("image");
+const placeholder = document.getElementById("placeholder");
+const gallery = document.getElementById("gallery");
+const downloadBtn = document.getElementById("downloadBtn");
+
+checkUser();
+renderGallery();
+
 </script>
 
 </body>
