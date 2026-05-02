@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Qeecko AI Generator</title>
+  <style>
+    body { font-family: Arial; text-align: center; padding: 40px; }
+    input { width: 300px; padding: 10px; }
+    button { padding: 10px 20px; margin-left: 10px; }
+    img { margin-top: 20px; max-width: 100%; }
+	#image {
+	  opacity: 0;
+	  transition: opacity 0.6s ease-in-out;
+	}
+
+	#image.show {
+	  opacity: 1;
+	}	
+	.spinner {
+	  width: 40px;
+	  height: 40px;
+	  border: 5px solid #ccc;
+	  border-top: 5px solid #333;
+	  border-radius: 50%;
+	  animation: spin 1s linear infinite;
+	  margin: auto;
+	}
+
+	@keyframes spin {
+	  0% { transform: rotate(0deg); }
+	  100% { transform: rotate(360deg); }
+	}
+
+	#loader {
+	  text-align: center;
+	}	
+	
+.image-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 512px;
+  margin: 20px auto;
+}
+
+#image {
+  width: 100%;
+  display: block;
+  opacity: 0;
+  transition: opacity 0.6s ease-in-out;
+  position: relative;
+  z-index: 2;
+}
+
+#image.show {
+  opacity: 1;
+}
+
+/* Blur placeholder */
+#placeholder {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background: #ddd;
+  filter: blur(12px);
+  animation: pulse 1.5s infinite;
+  z-index: 1;
+  display: none;
+}
+
+/* subtle pulsing effect */
+@keyframes pulse {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}
+
+.suggestions-box {
+  width: 300px;
+  margin: 10px auto;
+  text-align: left;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  max-height: 150px;
+  overflow-y: auto;
+  display: none;
+}
+
+.suggestion-item {
+  padding: 10px;
+  cursor: pointer;
+}
+
+.suggestion-item:hover {
+  background: #f0f0f0;
+}
+
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.gallery img {
+  width: 100%;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: transform 0.2s ease;
+}
+
+.gallery img:hover {
+  transform: scale(1.05);
+}	
+  </style>
+</head>
+<body>
+
+  <h1>Qeecko AI Image Generator</h1>
+ 
+
+  <input id="prompt" placeholder="Enter prompt..." oninput="showSuggestions()" />
+  <div id="suggestions" class="suggestions-box"></div>  
+  
+  <button onclick="generate()">Generate</button>
+
+	<div id="loader" style="display:none; margin-top:20px;">
+	  <div class="spinner"></div>
+	  <p>Generating image...</p>
+	</div>
+	<div style="margin-top:10px;">
+		<select id="style">
+		  <option value="">Default</option>
+		  <option value="cinematic">Cinematic</option>
+		  <option value="anime">Anime</option>
+		  <option value="realistic">Realistic</option>
+		  <option value="fantasy">Fantasy</option>
+		  <option value="cyberpunk">Cyberpunk</option>
+		</select>
+	  <button onclick="enhancePrompt()">✨ Enhance Prompt</button>
+	</div>	
+	<div class="image-wrapper">
+	  <img id="image" />
+	  <div id="placeholder"></div>
+	</div>
+<h2>History</h2>
+<div id="gallery" class="gallery"></div> 
+
+<button id="downloadBtn" onclick="downloadImage()" style="display:none;">
+  ⬇️ Download
+</button>
+  <script>
+  
+const promptSuggestions = [
+  "a futuristic neon city at night",
+  "a dragon flying over mountains at sunset",
+  "a realistic portrait of a cyberpunk warrior",
+  "a cute baby panda eating bamboo",
+  "a spaceship landing on Mars",
+  "a fantasy castle in the clouds",
+  "a robot playing guitar on stage",
+  "a surreal dreamscape with floating islands",
+  "a luxury modern house in the forest",
+  "a cinematic scene of a stormy ocean"
+];
+  
+async function generate() {
+  const prompt = document.getElementById("prompt").value;
+  const imageEl = document.getElementById("image");
+  const placeholder = document.getElementById("placeholder");
+
+  if (!prompt) {
+    alert("Please enter a prompt");
+    return;
+  }
+
+  // 👉 SHOW BLUR PLACEHOLDER
+  placeholder.style.display = "block";
+
+  // reset image
+  imageEl.classList.remove("show");
+  imageEl.src = "";
+
+  try {
+    const res = await fetch("http://localhost:3000/generate-image", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ prompt })
+    });
+
+    const data = await res.json();
+    console.log(data);
+
+    if (!res.ok) {
+      alert(data.error || "Failed to generate image");
+      return;
+    }
+
+    const imageUrl = data.data?.[0]?.url;
+    const base64 = data.data?.[0]?.b64_json;
+
+    const finalImage = imageUrl || (base64 ? `data:image/png;base64,${base64}` : null);
+
+    if (!finalImage) {
+      alert("No image returned");
+      return;
+    }
+
+    imageEl.src = finalImage;
+	
+	saveToHistory(finalImage);
+	
+    imageEl.onload = () => {
+      // hide placeholder
+      placeholder.style.display = "none";
+
+      // fade in image
+      imageEl.classList.add("show");
+	  
+      // 👉 show download button
+      document.getElementById("downloadBtn").style.display = "inline-block";	  
+    };
+
+  } catch (err) {
+    console.error(err);
+    alert("Network error");
+    placeholder.style.display = "none";
+  }
+}
+let debounceTimer;
+
+async function showSuggestions() {
+  const input = document.getElementById("prompt").value;
+  const box = document.getElementById("suggestions");
+
+  clearTimeout(debounceTimer);
+
+  if (!input) {
+    box.style.display = "none";
+    return;
+  }
+
+  // ⏱️ debounce (wait for typing to stop)
+  debounceTimer = setTimeout(async () => {
+    try {
+      const res = await fetch("http://localhost:3000/suggest-prompts", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ input })
+      });
+
+      const data = await res.json();
+      const suggestions = data.suggestions || [];
+
+      box.innerHTML = "";
+
+      if (suggestions.length === 0) {
+        box.style.display = "none";
+        return;
+      }
+
+      suggestions.forEach(item => {
+        const div = document.createElement("div");
+        div.className = "suggestion-item";
+        div.textContent = item;
+
+        div.onclick = () => {
+          document.getElementById("prompt").value = item;
+          box.style.display = "none";
+        };
+
+        box.appendChild(div);
+      });
+
+      box.style.display = "block";
+
+    } catch (err) {
+      console.error("Suggestion error:", err);
+    }
+  }, 400); // wait 400ms after typing
+}
+
+async function enhancePrompt() {
+  const inputEl = document.getElementById("prompt");
+  const prompt = inputEl.value;
+  const style = document.getElementById("style").value;
+
+  if (!prompt) {
+    alert("Enter a prompt first");
+    return;
+  }
+
+  inputEl.value = "Enhancing... ✨";
+
+  try {
+    const res = await fetch("http://localhost:3000/enhance-prompt", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ input: prompt, style })
+    });
+
+    const data = await res.json();
+
+    if (!data.enhanced) {
+      inputEl.value = prompt;
+      alert("Failed to enhance prompt");
+      return;
+    }
+
+    inputEl.value = data.enhanced;
+
+  } catch (err) {
+    console.error(err);
+    inputEl.value = prompt;
+    alert("Error enhancing prompt");
+  }
+}
+
+function saveToHistory(imageUrl) {
+  let history = JSON.parse(localStorage.getItem("imageHistory")) || [];
+
+  // add new image to front
+  history.unshift(imageUrl);
+
+  // limit to 20 images
+  history = history.slice(0, 20);
+
+  localStorage.setItem("imageHistory", JSON.stringify(history));
+
+  renderGallery();
+}
+
+function renderGallery() {
+  const gallery = document.getElementById("gallery");
+  const history = JSON.parse(localStorage.getItem("imageHistory")) || [];
+
+  gallery.innerHTML = "";
+
+  history.forEach(src => {
+    const img = document.createElement("img");
+    img.src = src;
+
+    // click to reuse image
+    img.onclick = () => {
+      document.getElementById("image").src = src;
+      document.getElementById("image").classList.add("show");
+    };
+
+    gallery.appendChild(img);
+  });
+}
+
+async function downloadImage() {
+  const img = document.getElementById("image");
+
+  if (!img.src) {
+    alert("No image to download");
+    return;
+  }
+
+  try {
+    const response = await fetch(img.src);
+    const blob = await response.blob();
+
+    const url = window.URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "qeecko-image.png";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    window.URL.revokeObjectURL(url);
+  } catch (err) {
+    console.error(err);
+    alert("Download failed");
+  }
+}
+document.addEventListener("click", (e) => {
+  const box = document.getElementById("suggestions");
+  const input = document.getElementById("prompt");
+
+  if (!box.contains(e.target) && e.target !== input) {
+    box.style.display = "none";
+  }
+});
+
+window.onload = () => {
+  renderGallery();
+};
+  </script>
+
+</body>
+</html>
