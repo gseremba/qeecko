@@ -19,9 +19,22 @@
   <meta name="twitter:title" content="Qeecko - AI Image Generator" />
   <meta name="twitter:description" content="Generate stunning AI images in seconds." />
   <meta name="twitter:image" content="https://qeecko.com/qeecko.png" />  
- 
+  <link rel="canonical" href="https://qeecko.com" />
+  <link rel="icon" href="/favicon.ico" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://browser.sentry-cdn.com/8.55.0/bundle.tracing.min.js" crossorigin="anonymous"></script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Qeecko",
+    "applicationCategory": "DesignApplication",
+    "operatingSystem": "Web",
+    "url": "https://qeecko.com",
+    "description": "AI-powered image generation platform."
+  }
+  </script>   
+  
   <script>    
 	//window.QEECKO_SENTRY_DSN = window.QEECKO_SENTRY_DSN || "";
 	window.QEECKO_SENTRY_DSN = "https://bcce808b7859413b97a95009737bcc12@o4511459603709952.ingest.us.sentry.io/4511465267003392";
@@ -2178,7 +2191,7 @@ textarea {
   <!-- AUTH -->
   <div id="auth" class="card">
     <div id="loginCard">
-      <h2>Login</h2>
+      <h2>Qeecko - Login</h2>
 
       <input id="loginEmail" type="email" placeholder="Email" autocomplete="email">
       <input id="loginPassword" type="password" placeholder="Password" autocomplete="current-password">
@@ -2196,7 +2209,7 @@ textarea {
     </div>
 
     <div id="forgotPasswordCard" style="display:none;">
-      <h2>Reset Password</h2>
+      <h2>Qeecko - Reset Password</h2>
 
       <p class="auth-help-text">
         Enter your account email and we will send you a secure password reset link.
@@ -2213,7 +2226,7 @@ textarea {
     </div>
 
     <div id="resetPasswordCard" style="display:none;">
-      <h2>Choose New Password</h2>
+      <h2>Qeecko - Choose New Password</h2>
 
       <p class="auth-help-text">
         Enter and confirm your new password.
@@ -2231,7 +2244,7 @@ textarea {
     </div>
 
     <div id="signupCard" style="display:none;">
-      <h2>Create Account</h2>
+      <h2>Qeecko - Create Account</h2>
 
       <input id="signupEmail" type="email" placeholder="Email" autocomplete="email">
       <input id="signupPassword" type="password" placeholder="Password" autocomplete="new-password">
@@ -2266,7 +2279,7 @@ textarea {
       <div class="topbar">
 
         <div class="topbar-left">
-          <h2 class="brand-link" onclick="goHome()">🚀 Qeecko</h2>
+          <h2 class="brand-link" onclick="goHome()">Qeecko</h2>
 
           <nav class="main-nav" aria-label="Main navigation">
             <button class="nav-link-btn" onclick="goHome()">Home</button>
