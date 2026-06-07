@@ -126,8 +126,6 @@ app.use(cors({
       return callback(null, true);
     }
 
-    //console.warn("Blocked CORS origin:", origin);
-
     console.error(
       "Blocked CORS origin:",
       origin,
@@ -884,7 +882,8 @@ app.post("/generate-image", async (req, res) => {
       });
 
       await logEvent(user.id, "image_generated", { count: 4 });
-      console.log("1 credit deducted");
+      //console.log(`${3} credits deducted`);
+	  console.log("3 credits deducted");
 
       res.json(data);
     } catch (generationError) {
