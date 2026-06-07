@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Qeecko - AI Image Generator</title>
+   <title>Qeecko - AI Image Generator</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-
+  
   <meta name="description" content="Generate stunning AI images in seconds with Qeecko. Create artwork, logos, characters, marketing graphics, and more using advanced AI." />
   <meta name="keywords" content="AI image generator, AI art, image creation, AI design, Qeecko, generate images, digital art" />
   <meta name="author" content="Qeecko" />
@@ -35,6 +35,8 @@
   }
   </script>   
   
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://browser.sentry-cdn.com/8.55.0/bundle.tracing.min.js" crossorigin="anonymous"></script>
   <script>    
 	//window.QEECKO_SENTRY_DSN = window.QEECKO_SENTRY_DSN || "";
 	window.QEECKO_SENTRY_DSN = "https://bcce808b7859413b97a95009737bcc12@o4511459603709952.ingest.us.sentry.io/4511465267003392";
@@ -2181,6 +2183,301 @@ textarea {
   }
 }
 
+
+/* =========================
+   QEECKO PUBLIC INTRODUCTION PAGE
+   ========================= */
+.landing-page {
+  display: none;
+  padding: 18px 0 28px;
+}
+.landing-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.landing-brand {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.landing-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.landing-actions button {
+  margin-top: 0;
+}
+.landing-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.95fr);
+  gap: 22px;
+  align-items: center;
+  background: radial-gradient(circle at top left, rgba(99,102,241,0.28), transparent 34%), #1e293b;
+  border: 1px solid #334155;
+  border-radius: 28px;
+  padding: 28px;
+  overflow: hidden;
+}
+.landing-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 11px;
+  border: 1px solid #475569;
+  border-radius: 999px;
+  background: rgba(15,23,42,0.7);
+  font-size: 13px;
+  color: #c7d2fe;
+}
+.landing-hero h1 {
+  font-size: clamp(34px, 7vw, 68px);
+  line-height: 0.98;
+  margin: 18px 0 14px;
+  letter-spacing: -0.06em;
+}
+.landing-hero p {
+  font-size: 17px;
+  line-height: 1.6;
+  color: rgba(255,255,255,0.82);
+  max-width: 620px;
+}
+.landing-cta-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+.landing-cta-row button {
+  margin-top: 0;
+  padding: 12px 16px;
+  font-weight: 700;
+}
+.landing-note {
+  margin-top: 12px;
+  font-size: 13px;
+  color: rgba(255,255,255,0.65);
+}
+.sample-mosaic {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.sample-tile {
+  min-height: 170px;
+  border-radius: 22px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  box-shadow: 0 16px 46px rgba(0,0,0,0.35);
+  position: relative;
+  overflow: hidden;
+}
+.sample-tile::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 26% 20%, rgba(255,255,255,0.35), transparent 22%);
+}
+.sample-tile strong,
+.sample-tile span {
+  position: relative;
+  z-index: 1;
+}
+.sample-tile strong {
+  font-size: 16px;
+}
+.sample-tile span {
+  font-size: 12px;
+  opacity: 0.78;
+  margin-top: 4px;
+}
+.sample-tile.large {
+  grid-row: span 2;
+  min-height: 352px;
+}
+.sample-1 { background: linear-gradient(135deg, #312e81, #7c3aed, #f97316); }
+.sample-2 { background: linear-gradient(135deg, #064e3b, #0891b2, #a7f3d0); }
+.sample-3 { background: linear-gradient(135deg, #7f1d1d, #db2777, #facc15); }
+.sample-4 { background: linear-gradient(135deg, #0f172a, #2563eb, #67e8f9); }
+.landing-section {
+  margin-top: 18px;
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 24px;
+  padding: 22px;
+}
+.landing-section h2 {
+  margin: 0 0 8px;
+  font-size: 26px;
+}
+.landing-section p {
+  color: rgba(255,255,255,0.76);
+  line-height: 1.55;
+}
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+.feature-card {
+  background: #111827;
+  border: 1px solid #334155;
+  border-radius: 18px;
+  padding: 16px;
+}
+.feature-card strong {
+  display: block;
+  margin-bottom: 6px;
+}
+.feature-card span {
+  color: rgba(255,255,255,0.72);
+  font-size: 13px;
+  line-height: 1.45;
+}
+.landing-price-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+.landing-price {
+  background: #111827;
+  border: 1px solid #334155;
+  border-radius: 18px;
+  padding: 16px;
+}
+.landing-price strong {
+  display: block;
+  font-size: 22px;
+}
+.landing-price span {
+  display: block;
+  margin-top: 4px;
+  color: rgba(255,255,255,0.7);
+  font-size: 13px;
+}
+body.legal-mode #landingPage {
+  display: none !important;
+}
+@media (max-width: 860px) {
+  .landing-hero {
+    grid-template-columns: 1fr;
+    padding: 20px;
+  }
+  .sample-mosaic {
+    grid-template-columns: 1fr 1fr;
+  }
+  .sample-tile,
+  .sample-tile.large {
+    min-height: 150px;
+    grid-row: auto;
+  }
+}
+@media (max-width: 560px) {
+  .landing-nav,
+  .landing-actions,
+  .landing-cta-row {
+    width: 100%;
+  }
+  .landing-actions button,
+  .landing-cta-row button {
+    flex: 1 1 auto;
+  }
+  .sample-mosaic {
+    grid-template-columns: 1fr;
+  }
+  .landing-section {
+    padding: 16px;
+  }
+}
+
+
+
+/* Real sample images on landing page */
+.sample-image-mosaic {
+  grid-template-columns: 1.05fr 1fr;
+  align-items: stretch;
+}
+
+.sample-image-card {
+  min-height: 220px;
+  border-radius: 22px;
+  overflow: hidden;
+  position: relative;
+  background: #111827;
+  box-shadow: 0 16px 46px rgba(0,0,0,0.35);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.sample-image-card.large {
+  grid-row: span 2;
+  min-height: 456px;
+}
+
+.sample-image-card img {
+  width: 100%;
+  height: 100%;
+  min-height: inherit;
+  object-fit: cover;
+  display: block;
+  transform: scale(1.01);
+}
+
+.sample-image-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(2,6,23,0.86), rgba(2,6,23,0.12) 56%, rgba(2,6,23,0.03));
+  pointer-events: none;
+}
+
+.sample-image-caption {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 14px;
+  z-index: 1;
+}
+
+.sample-image-caption strong {
+  display: block;
+  font-size: 16px;
+}
+
+.sample-image-caption span {
+  display: block;
+  font-size: 12px;
+  opacity: 0.82;
+  margin-top: 4px;
+  line-height: 1.35;
+}
+
+@media (max-width: 860px) {
+  .sample-image-mosaic {
+    grid-template-columns: 1fr;
+  }
+
+  .sample-image-card,
+  .sample-image-card.large {
+    min-height: 260px;
+    grid-row: auto;
+  }
+}
+
+@media (max-width: 560px) {
+  .sample-image-card,
+  .sample-image-card.large {
+    min-height: 230px;
+  }
+}
+
 </style>
 </head>
 
@@ -2188,10 +2485,82 @@ textarea {
 
 <div class="container">
 
+
+  <!-- PUBLIC INTRODUCTION / LANDING PAGE -->
+  <div id="landingPage" class="landing-page">
+    <div class="landing-nav">
+      <div class="landing-brand">Qeecko</div>
+      <div class="landing-actions">
+        <button class="secondary" onclick="showLandingLogin()">Login</button>
+        <button class="primary" onclick="showLandingSignup()">Create Account</button>
+      </div>
+    </div>
+
+    <section class="landing-hero">
+      <div>
+        <div class="landing-eyebrow">AI image creation • creator profiles • public galleries</div>
+        <h1>Create stunning AI images in seconds.</h1>
+        <p>Qeecko helps you turn simple prompts into polished AI images, explore creative variations, organize albums, follow creators, and share your best work with the world.</p>
+        <div class="landing-cta-row">
+          <button class="primary" onclick="showLandingSignup()">Start Creating</button>
+          <button class="secondary" onclick="showLandingLogin()">I already have an account</button>
+        </div>
+        <div class="landing-note">Each generation creates 4 images. Credits are used only when you generate.</div>
+      </div>
+
+      <div class="sample-mosaic sample-image-mosaic" aria-label="Sample Qeecko AI-generated images">
+        <article class="sample-image-card large">
+          <img src="/img/climber.png" alt="AI-generated climber reaching a mountain summit at sunset">
+          <div class="sample-image-caption">
+            <strong>Adventure & cinematic scenes</strong>
+            <span>Turn a simple prompt into a dramatic, polished visual.</span>
+          </div>
+        </article>
+
+        <article class="sample-image-card">
+          <img src="/img/lions.png" alt="AI-generated pride of lions beside a watering hole at sunset">
+          <div class="sample-image-caption">
+            <strong>Wildlife & nature concepts</strong>
+            <span>Create rich scenes with realistic lighting, detail, and atmosphere.</span>
+          </div>
+        </article>
+
+        <article class="sample-image-card">
+          <img src="/img/rhino_riding.png" alt="AI-generated man riding a rhino across a savannah at dawn">
+          <div class="sample-image-caption">
+            <strong>Imaginative story visuals</strong>
+            <span>Explore bold ideas, characters, and creative scenarios.</span>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="landing-section">
+      <h2>What you can do with Qeecko</h2>
+      <p>Use Qeecko as your creative studio for generating images, building collections, discovering creators, and saving inspiration.</p>
+      <div class="feature-grid">
+        <div class="feature-card"><strong>Generate 4 images</strong><span>Write a prompt and receive four image options in one request.</span></div>
+        <div class="feature-card"><strong>Create variations</strong><span>Use existing images as inspiration and generate new versions.</span></div>
+        <div class="feature-card"><strong>Organize albums</strong><span>Save your best creations into albums and public galleries.</span></div>
+        <div class="feature-card"><strong>Follow creators</strong><span>Discover trending creators, follow profiles, like and comment.</span></div>
+      </div>
+    </section>
+
+    <section class="landing-section">
+      <h2>Simple credit packages</h2>
+      <p>Start small, then upgrade as your creative workflow grows.</p>
+      <div class="landing-price-strip">
+        <div class="landing-price"><strong>25 Credits</strong><span>Starter package</span></div>
+        <div class="landing-price"><strong>100 Credits</strong><span>Popular package</span></div>
+        <div class="landing-price"><strong>500 Credits</strong><span>Creator package</span></div>
+      </div>
+    </section>
+  </div>
+
   <!-- AUTH -->
   <div id="auth" class="card">
     <div id="loginCard">
-      <h2>Qeecko - Login</h2>
+      <h2>Qeeko - Login</h2>
 
       <input id="loginEmail" type="email" placeholder="Email" autocomplete="email">
       <input id="loginPassword" type="password" placeholder="Password" autocomplete="current-password">
@@ -2209,7 +2578,7 @@ textarea {
     </div>
 
     <div id="forgotPasswordCard" style="display:none;">
-      <h2>Qeecko - Reset Password</h2>
+      <h2>Reset Password</h2>
 
       <p class="auth-help-text">
         Enter your account email and we will send you a secure password reset link.
@@ -2226,7 +2595,7 @@ textarea {
     </div>
 
     <div id="resetPasswordCard" style="display:none;">
-      <h2>Qeecko - Choose New Password</h2>
+      <h2>Choose New Password</h2>
 
       <p class="auth-help-text">
         Enter and confirm your new password.
@@ -2279,7 +2648,7 @@ textarea {
       <div class="topbar">
 
         <div class="topbar-left">
-          <h2 class="brand-link" onclick="goHome()">Qeecko</h2>
+          <h2 class="brand-link" onclick="goHome()">🚀 Qeecko</h2>
 
           <nav class="main-nav" aria-label="Main navigation">
             <button class="nav-link-btn" onclick="goHome()">Home</button>
@@ -3679,12 +4048,38 @@ function resetRuntimeStateForReload() {
   if (selectedCountEl) selectedCountEl.innerText = "0 selected";
 }
 
+
+function showLandingPage() {
+  const landingPage = document.getElementById("landingPage");
+  if (landingPage) landingPage.style.display = "block";
+  if (authDiv) authDiv.style.display = "none";
+  if (appDiv) appDiv.style.display = "none";
+}
+
+function hideLandingPage() {
+  const landingPage = document.getElementById("landingPage");
+  if (landingPage) landingPage.style.display = "none";
+}
+
+window.showLandingLogin = function () {
+  hideLandingPage();
+  authDiv.style.display = "block";
+  appDiv.style.display = "none";
+  showLoginCard();
+};
+
+window.showLandingSignup = function () {
+  hideLandingPage();
+  authDiv.style.display = "block";
+  appDiv.style.display = "none";
+  showSignupCard();
+};
+
 function renderLoggedOutState() {
   resetPublicModeState();
   resetRuntimeStateForReload();
 
-  authDiv.style.display = "block";
-  appDiv.style.display = "none";
+  showLandingPage();
 
   if (creditsEl) creditsEl.innerText = "0";
   if (galleryEl) galleryEl.innerHTML = "";
@@ -3699,6 +4094,7 @@ async function renderLoggedInState() {
   resetRuntimeStateForReload();
   resetPanelsForHome();
 
+  hideLandingPage();
   authDiv.style.display = "none";
   appDiv.style.display = "block";
   appDiv.classList.add("app-booting");
@@ -4248,18 +4644,24 @@ function hideAuthCards() {
 }
 
 window.showSignupCard = function () {
+  hideLandingPage();
+  if (authDiv) authDiv.style.display = "block";
   hideAuthCards();
   signupCard.style.display = "block";
   authStatus.innerText = "";
 };
 
 window.showLoginCard = function () {
+  hideLandingPage();
+  if (authDiv) authDiv.style.display = "block";
   hideAuthCards();
   loginCard.style.display = "block";
   authStatus.innerText = "";
 };
 
 window.showForgotPasswordCard = function () {
+  hideLandingPage();
+  if (authDiv) authDiv.style.display = "block";
   hideAuthCards();
   forgotPasswordCard.style.display = "block";
   forgotEmailEl.value = loginEmailEl.value.trim() || forgotEmailEl.value;
@@ -4267,6 +4669,7 @@ window.showForgotPasswordCard = function () {
 };
 
 window.showResetPasswordCard = function () {
+  hideLandingPage();
   hideAuthCards();
   resetPasswordCard.style.display = "block";
   authDiv.style.display = "block";
