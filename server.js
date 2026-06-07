@@ -77,13 +77,32 @@ if (missingEnv.length) {
 }
 
 function parseAllowedOrigins() {
-  const configured = (process.env.ALLOWED_ORIGINS || process.env.APP_URL || "")
-    .split(",")
-    .map(origin => origin.trim())
-    .filter(Boolean);
+  const configured = [];
+
+  if (process.env.APP_URL) {
+    configured.push(process.env.APP_URL);
+  }
+
+  configured.push(
+    "https://qeecko.com",
+    "https://www.qeecko.com",
+    "https://qeecko.onrender.com"
+  );
+
+  if (process.env.ALLOWED_ORIGINS) {
+    configured.push(
+      ...process.env.ALLOWED_ORIGINS
+        .split(",")
+        .map(origin => origin.trim())
+        .filter(Boolean)
+    );
+  }
 
   if (!isProduction) {
-    configured.push("http://localhost:3000", "http://127.0.0.1:3000");
+    configured.push(
+      "http://localhost:3000",
+      "http://127.0.0.1:3000"
+    );
   }
 
   return [...new Set(configured)];
@@ -107,7 +126,15 @@ app.use(cors({
       return callback(null, true);
     }
 
-    console.warn("Blocked CORS origin:", origin);
+    //console.warn("Blocked CORS origin:", origin);
+
+    console.error(
+      "Blocked CORS origin:",
+      origin,
+      "Allowed origins:",
+      allowedOrigins
+    );	
+	
     return callback(new Error("Not allowed by CORS"));
   },
   credentials: true
