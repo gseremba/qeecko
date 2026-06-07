@@ -12,11 +12,17 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@sentry/node": "^10.56.0",
+    "@supabase/ssr": "^0.10.2",
+    "@supabase/supabase-js": "^2.105.1",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.5.2",
+    "helmet": "^8.2.0",
     "node-fetch": "^2.7.0",
     "openai": "^6.35.0",
-    "path": "^0.12.7"
+    "path": "^0.12.7",
+    "stripe": "^22.1.1"
   }
 }
