@@ -2072,6 +2072,33 @@ textarea {
     grid-template-columns: 1fr;
     align-items: stretch;
   }
+  
+  /* Compact discovery/profile views */
+  body.compact-view .dashboard-panel,
+  body.compact-view .gallery-panel,
+  body.compact-view .public-profile-card {
+    margin-top: 4px !important;
+    padding: 8px !important;
+  }
+
+  body.compact-view .dashboard-header,
+  body.compact-view .gallery-header {
+    margin-bottom: 4px !important;
+    padding-bottom: 2px !important;
+  }
+
+  body.compact-view .dashboard-header h3,
+  body.compact-view .gallery-header h3,
+  body.compact-view .public-profile-card h2 {
+    margin: 0 !important;
+  }
+
+  body.compact-view .analytics-grid,
+  body.compact-view .profile-grid,
+  body.compact-view .gallery,
+  body.compact-view .image-grid {
+    margin-top: 6px !important;
+  }  
 
   .gallery-toolbar input,
   .gallery-toolbar-secondary input,
@@ -2648,7 +2675,7 @@ body.legal-mode #landingPage {
       <div class="topbar">
 
         <div class="topbar-left">
-          <h2 class="brand-link" onclick="goHome()">🚀 Qeecko</h2>
+          <h2 class="brand-link" onclick="goHome()">Qeecko</h2>
 
           <nav class="main-nav" aria-label="Main navigation">
             <button class="nav-link-btn" onclick="goHome()">Home</button>
