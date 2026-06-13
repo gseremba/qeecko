@@ -1339,6 +1339,7 @@
   margin-top: 12px;
   padding: 12px;
   max-height: 760px;
+  overflow-y: auto;
 }
 
 .gallery-header {
@@ -1838,6 +1839,17 @@ textarea {
 .modal-image {
   width: auto;
   height: auto;
+}
+
+@media (max-width: 640px) {
+  .gallery-panel {
+    max-height: none !important;
+    overflow-y: visible !important;
+  }
+
+  .gallery-header {
+    position: static !important;
+  }
 }
 
 @media (max-width: 900px) {
@@ -6117,28 +6129,55 @@ window.saveImageTags = async function () {
 async function loadPublicGallery(slug) {
   publicMode = true;
   document.body.classList.add("public-mode");
-  setPublicProfileView(false);
+  // Match the Trending Images discovery layout for public album pages.
+  setPublicProfileView(true);
   authDiv.style.display = "none";
   appDiv.style.display = "block";
+
+  profilePanel?.classList.remove("show");
+  analyticsPanel?.classList.remove("show");
+  creditHistoryPanel?.classList.remove("show");
+  notificationPanel?.classList.remove("show");
+  adminPanel?.classList.remove("show");
+
+  publicBannerEl.style.display = "block";
+  publicBannerEl.innerHTML = `<div class="public-profile-card"><h2>Public Gallery</h2><p>Loading shared Qeecko AI creations...</p></div>`;
+  galleryEl.innerHTML = `<div class="gallery-loader">Loading gallery...</div>`;
+  imageGrid.innerHTML = "";
 
   const res = await fetch(`/api/public-gallery/${encodeURIComponent(slug)}`);
   const data = await res.json();
 
   if (!res.ok) {
     publicBannerEl.style.display = "block";
-    publicBannerEl.innerHTML = `<strong>Gallery not available</strong><span>${data.error || "This public gallery link is invalid or private."}</span>`;
+    publicBannerEl.innerHTML = `<div class="public-profile-card"><h2>Gallery not available</h2><p>${escapeHtml(data.error || "This public gallery link is invalid or private.")}</p></div>`;
     galleryEl.innerHTML = galleryEmptyMessage();
     return;
   }
 
   const collection = data.collection || {};
+  const images = data.images || [];
   publicCollectionId = collection.id;
+
   publicBannerEl.style.display = "block";
-  publicBannerEl.innerHTML = `<strong>Public Gallery: ${collection.name}</strong><span>Shared Qeecko AI creations.</span>`;
+  publicBannerEl.innerHTML = `
+    <div class="public-profile-card">
+      <h2>${escapeHtml(collection.name || "Public Gallery")}</h2>
+      <p>Shared Qeecko AI creations.</p>
+    </div>
+  `;
 
   galleryEl.innerHTML = "";
-  (data.images || []).forEach(item => renderGalleryCard(item));
-  if (!(data.images || []).length) galleryEl.innerHTML = galleryEmptyMessage();
+
+  if (!images.length) {
+    galleryEl.innerHTML = `<div class="gallery-empty"><strong>No images yet</strong><p>This public gallery does not contain visible images yet.</p></div>`;
+    return;
+  }
+
+  // Reuse the same public card behavior as Trending Images:
+  // Open, Download, Copy, Likes, and Comments only.
+  images.forEach(item => renderGalleryCard(item));
+  scheduleHydratePublicSocialCards?.();
 }
 
 // =========================
