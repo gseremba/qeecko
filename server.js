@@ -138,6 +138,76 @@ app.use(cors({
   credentials: true
 }));
 
+app.get("/sitemap.xml", async (req, res) => {
+  try {
+    const baseUrl = getAppBaseUrl();
+    const urls = [
+      { loc: `${baseUrl}/`, priority: "1.0", changefreq: "daily" },
+      { loc: `${baseUrl}/creators`, priority: "0.8", changefreq: "daily" },
+      { loc: `${baseUrl}/trending`, priority: "0.8", changefreq: "hourly" },
+      { loc: `${baseUrl}/trending-images`, priority: "0.8", changefreq: "hourly" }
+    ];
+
+    const [{ data: profiles }, { data: collections }] = await Promise.all([
+      supabase
+        .from("profiles")
+        .select("username, updated_at, created_at")
+        .eq("public_profile", true)
+        .eq("is_banned", false)
+        .not("username", "is", null)
+        .limit(1000),
+      supabase
+        .from("collections")
+        .select("public_slug, updated_at, created_at")
+        .eq("is_public", true)
+        .not("public_slug", "is", null)
+        .limit(1000)
+    ]);
+
+    (profiles || []).forEach(profile => {
+      urls.push({
+        loc: `${baseUrl}/u/${encodeURIComponent(profile.username)}`,
+        lastmod: profile.updated_at || profile.created_at || null,
+        priority: "0.7",
+        changefreq: "weekly"
+      });
+    });
+
+    (collections || []).forEach(collection => {
+      urls.push({
+        loc: `${baseUrl}/gallery/${encodeURIComponent(collection.public_slug)}`,
+        lastmod: collection.updated_at || collection.created_at || null,
+        priority: "0.6",
+        changefreq: "weekly"
+      });
+    });
+
+    const body = urls.map(item => `
+  <url>
+    <loc>${escapeXml(item.loc)}</loc>
+    ${item.lastmod ? `<lastmod>${escapeXml(new Date(item.lastmod).toISOString())}</lastmod>` : ""}
+    <changefreq>${item.changefreq}</changefreq>
+    <priority>${item.priority}</priority>
+  </url>`).join("");
+  
+    res.set({
+      "Content-Type": "application/xml",
+      "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+      "Pragma": "no-cache",
+      "Expires": "0"
+    });  
+
+    res.type("application/xml").send(`<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${body}
+</urlset>`);
+  } catch (err) {
+    console.error("SITEMAP ERROR:", err);
+    captureServerError(err, { route: "/sitemap.xml" });
+    res.status(500).type("application/xml").send(`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>`);
+  }
+});
+
+
 app.use(express.static(path.join(__dirname, "public")));
 
 const supabase = createClient(
@@ -2749,67 +2819,6 @@ app.get("/robots.txt", (req, res) => {
   res.type("text/plain").send(`User-agent: *\nAllow: /\n\nSitemap: ${baseUrl}/sitemap.xml\n`);
 });
 
-app.get("/sitemap.xml", async (req, res) => {
-  try {
-    const baseUrl = getAppBaseUrl();
-    const urls = [
-      { loc: `${baseUrl}/`, priority: "1.0", changefreq: "daily" },
-      { loc: `${baseUrl}/creators`, priority: "0.8", changefreq: "daily" },
-      { loc: `${baseUrl}/trending`, priority: "0.8", changefreq: "hourly" },
-      { loc: `${baseUrl}/trending-images`, priority: "0.8", changefreq: "hourly" }
-    ];
-
-    const [{ data: profiles }, { data: collections }] = await Promise.all([
-      supabase
-        .from("profiles")
-        .select("username, updated_at, created_at")
-        .eq("public_profile", true)
-        .eq("is_banned", false)
-        .not("username", "is", null)
-        .limit(1000),
-      supabase
-        .from("collections")
-        .select("public_slug, updated_at, created_at")
-        .eq("is_public", true)
-        .not("public_slug", "is", null)
-        .limit(1000)
-    ]);
-
-    (profiles || []).forEach(profile => {
-      urls.push({
-        loc: `${baseUrl}/u/${encodeURIComponent(profile.username)}`,
-        lastmod: profile.updated_at || profile.created_at || null,
-        priority: "0.7",
-        changefreq: "weekly"
-      });
-    });
-
-    (collections || []).forEach(collection => {
-      urls.push({
-        loc: `${baseUrl}/gallery/${encodeURIComponent(collection.public_slug)}`,
-        lastmod: collection.updated_at || collection.created_at || null,
-        priority: "0.6",
-        changefreq: "weekly"
-      });
-    });
-
-    const body = urls.map(item => `
-  <url>
-    <loc>${escapeXml(item.loc)}</loc>
-    ${item.lastmod ? `<lastmod>${escapeXml(new Date(item.lastmod).toISOString())}</lastmod>` : ""}
-    <changefreq>${item.changefreq}</changefreq>
-    <priority>${item.priority}</priority>
-  </url>`).join("");
-
-    res.type("application/xml").send(`<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${body}
-</urlset>`);
-  } catch (err) {
-    console.error("SITEMAP ERROR:", err);
-    captureServerError(err, { route: "/sitemap.xml" });
-    res.status(500).type("application/xml").send(`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>`);
-  }
-});
 
 app.get("/u/:username", async (req, res) => {
   const username = String(req.params.username || "").toLowerCase();
