@@ -148,7 +148,8 @@ app.get("/sitemap.xml", async (req, res) => {
       { loc: `${baseUrl}/trending-images`, priority: "0.8", changefreq: "hourly" }
     ];
 
-    const [{ data: profiles }, { data: collections }] = await Promise.all([
+    //const [{ data: profiles }, { data: collections }] = await Promise.all([
+	const [profilesResult, collectionsResult] = await Promise.all([
       supabase
         .from("profiles")
         .select("username, updated_at, created_at")
