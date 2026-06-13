@@ -221,6 +221,24 @@ app.get("/sitemap.xml", async (req, res) => {
   }
 });
 
+app.get("/debug-sitemap", async (req, res) => {
+  const profiles = await supabase
+    .from("profiles")
+    .select("username, public_profile, is_banned")
+    .limit(20);
+
+  const collections = await supabase
+    .from("collections")
+    .select("name, public_slug, is_public")
+    .limit(20);
+
+  res.json({
+    appUrl: process.env.APP_URL,
+    profiles,
+    collections
+  });
+});
+
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_KEY // service role key; never expose this to frontend
