@@ -138,73 +138,89 @@ app.use(cors({
   credentials: true
 }));
 
-app.use(express.static(path.join(__dirname, "public")));
-
-app.get("/sitemap.xml", async (req, res) => {
-  const baseUrl = process.env.APP_URL || "https://qeecko.com";
-
-  const profilesResult = await supabase
-    .from("profiles")
-    .select("username, updated_at, created_at")
-    .eq("public_profile", true)
-    .eq("is_banned", false)
-    .not("username", "is", null);
-
-  const collectionsResult = await supabase
-    .from("collections")
-    .select("public_slug, updated_at, created_at")
-    .eq("is_public", true)
-    .not("public_slug", "is", null);
-
-  const profiles = profilesResult.data || [];
-  const collections = collectionsResult.data || [];
-
-  const urls = [
-    `${baseUrl}/`,
-    `${baseUrl}/creators`,
-    `${baseUrl}/trending`,
-    `${baseUrl}/trending-images`,
-    ...profiles.map(p => `${baseUrl}/u/${encodeURIComponent(p.username)}`),
-    ...collections.map(c => `${baseUrl}/gallery/${encodeURIComponent(c.public_slug)}`)
-  ];
-
-  const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urls.map(url => `  <url><loc>${escapeXml(url)}</loc></url>`).join("\n")}
-</urlset>`;
-
-  res.set({
-    "Content-Type": "application/xml",
-    "Cache-Control": "no-store"
-  });
-
-  res.send(xml);
-});
-
-app.get("/debug-sitemap", async (req, res) => {
-  const profiles = await supabase
-    .from("profiles")
-    .select("username, public_profile, is_banned")
-    .limit(20);
-
-  const collections = await supabase
-    .from("collections")
-    .select("name, public_slug, is_public")
-    .limit(20);
-
-  res.json({
-    appUrl: process.env.APP_URL,
-    profiles,
-    collections
-  });
-});
-
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_KEY // service role key; never expose this to frontend
 );
 
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
+
+// Serve static assets after dynamic SEO routes so sitemap.xml is generated from Supabase.
+app.get("/sitemap.xml", async (req, res) => {
+  try {
+    const baseUrl = String(process.env.APP_URL || "https://qeecko.com").replace(/\/$/, "");
+
+    const [profilesResult, collectionsResult] = await Promise.all([
+      supabase
+        .from("profiles")
+        .select("username")
+        .eq("public_profile", true)
+        .eq("is_banned", false)
+        .not("username", "is", null)
+        .limit(1000),
+      supabase
+        .from("collections")
+        .select("public_slug")
+        .eq("is_public", true)
+        .not("public_slug", "is", null)
+        .limit(1000)
+    ]);
+
+    if (profilesResult.error) {
+      console.error("SITEMAP PROFILES ERROR:", profilesResult.error);
+    }
+
+    if (collectionsResult.error) {
+      console.error("SITEMAP COLLECTIONS ERROR:", collectionsResult.error);
+    }
+
+    const profiles = profilesResult.data || [];
+    const collections = collectionsResult.data || [];
+
+    const urls = [
+      { loc: `${baseUrl}/`, priority: "1.0", changefreq: "daily" },
+      { loc: `${baseUrl}/creators`, priority: "0.8", changefreq: "daily" },
+      { loc: `${baseUrl}/trending`, priority: "0.8", changefreq: "hourly" },
+      { loc: `${baseUrl}/trending-images`, priority: "0.8", changefreq: "hourly" },
+      ...profiles.map(profile => ({
+        loc: `${baseUrl}/u/${encodeURIComponent(profile.username)}`,
+        priority: "0.7",
+        changefreq: "weekly"
+      })),
+      ...collections.map(collection => ({
+        loc: `${baseUrl}/gallery/${encodeURIComponent(collection.public_slug)}`,
+        priority: "0.6",
+        changefreq: "weekly"
+      }))
+    ];
+
+    const body = urls.map(item => `
+  <url>
+    <loc>${escapeXml(item.loc)}</loc>
+    <changefreq>${item.changefreq}</changefreq>
+    <priority>${item.priority}</priority>
+  </url>`).join("");
+
+    res.set({
+      "Content-Type": "application/xml",
+      "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+      "Pragma": "no-cache",
+      "Expires": "0"
+    });
+
+    res.send(`<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${body}
+</urlset>`);
+  } catch (err) {
+    console.error("SITEMAP ERROR:", err);
+    captureServerError(err, { route: "/sitemap.xml" });
+    res.status(500)
+      .type("application/xml")
+      .send(`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>`);
+  }
+});
+
+app.use(express.static(path.join(__dirname, "public")));
 
 // Stripe webhooks need the raw body. All other routes use JSON.
 app.use((req, res, next) => {
