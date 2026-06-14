@@ -129,6 +129,30 @@
       border-radius: 10px;
       margin-top: 20px;
     }
+	
+	/* Show or Hide prompt tool */
+	
+    #promptToolsBody.collapsed {
+      display: none;
+    }
+
+    .collapsible-tools {
+      margin-top: 12px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 16px;
+      padding: 14px;	  
+    }
+
+    .collapsible-tools .mini-toggle {
+      width: auto;
+      margin-top: 0;
+    }	
+	
+    .collapsible-tools-title {
+      font-weight: bold;
+      margin-bottom: 12px;
+    }	
 
     .gallery {
       display: grid;
@@ -201,7 +225,7 @@
   max-height: 700px;
   overflow-y: auto;
 }
-
+/*
 .gallery-header {
   position: sticky;
   top: 0;
@@ -209,6 +233,14 @@
   padding-bottom: 12px;
   z-index: 10;
 }
+*/
+
+.gallery-header {
+  background: #1e293b;
+  padding-bottom: 8px;
+  z-index: 10;
+}
+
     .gallery-empty {
       grid-column: 1 / -1;
       background: #111827;
@@ -1201,10 +1233,10 @@
   background: #111827;
   border: 1px solid #334155;
   border-radius: 18px;
-  padding: 18px;
-  margin-top: 18px;
+  padding: 4px;
+  margin-top: 4px;
 }
-.public-profile-card h2 { margin-bottom: 6px; }
+.public-profile-card h2 { margin-bottom: 3px; padding-top: 0; margin-top: 2px; }
 .public-profile-card p { opacity: 0.8; }
 .public-mode .dashboard-panel,
 .public-mode .bulk-actions-bar,
@@ -2091,7 +2123,7 @@ textarea {
   body.compact-view .gallery-panel,
   body.compact-view .public-profile-card {
     margin-top: 4px !important;
-    padding: 8px !important;
+    padding: 4px !important;
   }
 
   body.compact-view .dashboard-header,
@@ -2437,8 +2469,6 @@ body.legal-mode #landingPage {
     padding: 16px;
   }
 }
-
-
 
 /* Real sample images on landing page */
 .sample-image-mosaic {
@@ -2968,7 +2998,14 @@ body.legal-mode #landingPage {
         </div>
       </div>
 
-      <div class="prompt-history-tools">
+      <div id="promptToolsPanel" class="collapsible-tools">
+        <div class="collapsible-tools-title compact-section-title">
+           <span>Prompt Tools</span>
+           <button class="secondary mini-toggle" onclick="togglePromptTools()">Show/Hide</button>
+        </div>
+        <div id="promptToolsBody">
+  
+       <div class="prompt-history-tools">
         <button class="secondary" onclick="togglePromptHistory()">Prompt History</button>
         <button class="secondary" onclick="clearPromptHistory()">Clear History</button>
       </div>
@@ -3006,7 +3043,10 @@ body.legal-mode #landingPage {
 
       <button id="generateBtn" class="primary" onclick="generate()">Generate</button>
       <button class="secondary" onclick="enhancePrompt()">✨ Enhance</button>
-      
+     
+     </div>	 
+   </div>
+
 
       <div id="placeholder"></div>
 	  
@@ -3459,6 +3499,19 @@ window.toggleWorkflowPanel = function () {
   body.classList.toggle("collapsed");
 };
 
+function setPromptToolsVisible(show) {
+  const panel = document.getElementById("promptToolsPanel");
+  if (!panel) return;
+
+  panel.style.display = show ? "" : "none";
+}
+
+function togglePromptTools() {
+  const body = document.getElementById("promptToolsBody");
+  if (!body) return;
+
+  body.classList.toggle("collapsed");
+}
 
 
 // =========================
@@ -4019,6 +4072,7 @@ function patchHistoryNavigation() {
 }
 
 window.goHome = async function () {
+  setPromptToolsVisible(true);
   history.pushState({}, "", "/");
   await bootAppFromSession();
 };
@@ -6656,7 +6710,7 @@ async function loadCloudHistory(reset = true) {
 
   if (error) {
     console.error(error);
-    showToast("Could not load gallery");
+    //showToast("Could not load gallery");
     galleryLoading = false;
     return;
   }
@@ -7851,11 +7905,16 @@ async function loadAdminAuditLogs() {
 
 
 async function loadPublicCreatorProfile(username) {
+  setPromptToolsVisible(false);
   publicMode = true;
   document.body.classList.add("public-mode");
   setPublicProfileView(true);
   authDiv.style.display = "none";
   appDiv.style.display = "block";
+
+  // Keep the authenticated header state while browsing public creator pages.
+  // This is safe for logged-out visitors too: loadCredits() falls back to 0.
+  await loadCredits();
   
   const res = await authFetch(`/api/public-profile/${encodeURIComponent(username)}`);
   const data = await res.json();
@@ -7864,6 +7923,7 @@ async function loadPublicCreatorProfile(username) {
     publicBannerEl.style.display = "block";
     publicBannerEl.innerHTML = `<strong>Creator profile not available</strong><span>${data.error || "This profile is private or unavailable."}</span>`;
     galleryEl.innerHTML = galleryEmptyMessage();
+    await loadCredits();
     return;
   }
 
@@ -7900,6 +7960,8 @@ async function loadPublicCreatorProfile(username) {
   galleryEl.innerHTML = "";
   (data.images || []).forEach(item => renderGalleryCard(item));
   if (!(data.images || []).length) galleryEl.innerHTML = galleryEmptyMessage();
+
+  await loadCredits();
 }
 
 
@@ -7950,6 +8012,7 @@ function renderDiscoveryImages(images = [], emptyTitle = "No images found", empt
 }
 
 window.loadSavedImages = async function () {
+  setPromptToolsVisible(false);
   setPublicProfileView(true);
   publicMode = true;
   document.body.classList.add("public-mode");
@@ -7992,6 +8055,7 @@ window.loadSavedImages = async function () {
 };
 
 window.loadFollowingFeed = async function () {
+  setPromptToolsVisible(false);
   setPublicProfileView(true);
   publicMode = true;
   document.body.classList.add("public-mode");
@@ -8113,6 +8177,7 @@ window.toggleTrendingCreatorFollow = async function (creatorId) {
 };
 
 window.loadTrendingCreators = async function () {
+  setPromptToolsVisible(false);
   setPublicProfileView(true);
   publicMode = true;
   document.body.classList.add("public-mode");
@@ -8151,6 +8216,7 @@ window.loadTrendingCreators = async function () {
 
 
 window.loadTrendingImages = async function () {
+  setPromptToolsVisible(false);
   setPublicProfileView(true);
   publicMode = true;
   document.body.classList.add("public-mode");
