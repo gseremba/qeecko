@@ -3043,6 +3043,7 @@ body.legal-mode #landingPage {
 
       <button id="generateBtn" class="primary" onclick="generate()">Generate</button>
       <button class="secondary" onclick="enhancePrompt()">✨ Enhance</button>
+	  <button class="secondary" onclick="clearPrompt()">🧹 Clear</button>
      
      </div>	 
    </div>
@@ -3513,7 +3514,28 @@ function togglePromptTools() {
   body.classList.toggle("collapsed");
 }
 
+function clearPrompt() {
+  const promptEl = document.getElementById("prompt");
 
+  if (promptEl) {
+    promptEl.value = "";
+    promptEl.focus();
+  }
+
+  // Optional: clear suggestions
+  const suggestions = document.getElementById("suggestions");
+  if (suggestions) {
+    suggestions.innerHTML = "";
+    suggestions.style.display = "none";
+  }
+
+  // Optional: reset prompt score
+  const scoreFill = document.getElementById("promptScoreFill");
+  const scoreText = document.getElementById("promptScoreText");
+
+  if (scoreFill) scoreFill.style.width = "0%";
+  if (scoreText) scoreText.textContent = "0/100";
+}
 // =========================
 // UPLOADED IMAGE WORKFLOW — STAGE 1
 // =========================
