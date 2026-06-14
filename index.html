@@ -108,7 +108,7 @@
       cursor: pointer;
     }
 
-    .primary { background: #6366f1; color: white; }
+    .primary { background: #6366f1; color: white;}
     .secondary { background: #334155; color: white; }
 
     #image {
@@ -6204,6 +6204,7 @@ window.saveImageTags = async function () {
 };
 
 async function loadPublicGallery(slug) {
+  setPromptToolsVisible(false);
   publicMode = true;
   document.body.classList.add("public-mode");
   // Match the Trending Images discovery layout for public album pages.
