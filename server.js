@@ -44,6 +44,7 @@ const cors = require("cors");
 const helmet = require("helmet");
 const path = require("path");
 const fs = require("fs");
+const crypto = require("crypto");
 const bodyParser = require("body-parser");
 const Stripe = require("stripe");
 const { createClient } = require("@supabase/supabase-js");
@@ -55,19 +56,29 @@ const isProduction = process.env.NODE_ENV === "production";
 // =========================
 // ENVIRONMENT VALIDATION
 // =========================
+const IMAGE_PROVIDER = String(process.env.IMAGE_PROVIDER || "openai").toLowerCase();
+const OPENAI_IMAGE_FALLBACK = String(process.env.OPENAI_IMAGE_FALLBACK || "true").toLowerCase() !== "false";
+
 const requiredEnv = [
   "SUPABASE_URL",
   "SUPABASE_SERVICE_KEY",
   "STRIPE_SECRET_KEY",
   "STRIPE_WEBHOOK_SECRET",
-  "OPENAI_API_KEY",
   "APP_URL",
   "STRIPE_PRICE_25",
-  "STRIPE_PRICE_100",
+  "STRIPE_PRICE_75",
+  "STRIPE_PRICE_200",
   "STRIPE_PRICE_500"
 ];
 
-const missingEnv = requiredEnv.filter(name => !process.env[name]);
+if (IMAGE_PROVIDER === "kling") {
+  requiredEnv.push("KLING_ACCESS_KEY", "KLING_SECRET_KEY");
+  if (OPENAI_IMAGE_FALLBACK) requiredEnv.push("OPENAI_API_KEY");
+} else {
+  requiredEnv.push("OPENAI_API_KEY");
+}
+
+const missingEnv = [...new Set(requiredEnv)].filter(name => !process.env[name]);
 
 if (missingEnv.length) {
   console.error(`Missing required environment variables: ${missingEnv.join(", ")}`);
@@ -494,7 +505,28 @@ high quality
 `;
 }
 
-async function generateImages({ prompt, n = 4, size = "1024x1024" }) {
+async function generateImages({ prompt, n = 4, size = "1024x1024", imageUrl = null, userId = null }) {
+  if (IMAGE_PROVIDER === "kling") {
+    try {
+      return await generateImagesWithKling({ prompt, n, size, imageUrl, userId });
+    } catch (err) {
+      console.error("KLING IMAGE ERROR:", err.details || err);
+
+      if (OPENAI_IMAGE_FALLBACK && process.env.OPENAI_API_KEY) {
+        console.warn("Falling back to OpenAI image generation");
+        return imageUrl
+          ? generateImagesWithOpenAIEdit({ imageUrl, prompt, n, size })
+          : generateImagesWithOpenAI({ prompt, n, size });
+      }
+
+      throw err;
+    }
+  }
+
+  return generateImagesWithOpenAI({ prompt, n, size });
+}
+
+async function generateImagesWithOpenAI({ prompt, n = 4, size = "1024x1024" }) {
   const response = await fetch("https://api.openai.com/v1/images/generations", {
     method: "POST",
     headers: {
@@ -525,8 +557,861 @@ async function generateImages({ prompt, n = 4, size = "1024x1024" }) {
   return data;
 }
 
+function getKlingImageAspectRatio(size = "1024x1024") {
+  const normalized = String(size || "").toLowerCase();
 
-async function editImageFromUrl({ imageUrl, prompt, n = 4, size = "1024x1024" }) {
+  if (normalized.includes("1792x1024") || normalized.includes("16:9")) return "16:9";
+  if (normalized.includes("1024x1792") || normalized.includes("9:16")) return "9:16";
+
+  return "1:1";
+}
+
+function extractKlingImageTaskId(data) {
+  return (
+    data?.data?.task_id ||
+    data?.data?.id ||
+    data?.task_id ||
+    data?.id ||
+    data?.request_id ||
+    null
+  );
+}
+
+function extractKlingImageStatus(data) {
+  return String(
+    data?.data?.task_status ||
+    data?.data?.status ||
+    data?.task_status ||
+    data?.status ||
+    ""
+  ).toLowerCase();
+}
+
+function extractKlingImageUrls(data) {
+  const result =
+    data?.data?.task_result ||
+    data?.task_result ||
+    data?.data?.result ||
+    data?.result ||
+    data?.data ||
+    data;
+
+  const candidates = [
+    result?.images,
+    result?.image,
+    result?.urls,
+    result?.output,
+    data?.data?.images,
+    data?.images
+  ];
+
+  const urls = [];
+
+  function addUrl(value) {
+    if (!value) return;
+
+    if (typeof value === "string") {
+      urls.push(value);
+      return;
+    }
+
+    if (Array.isArray(value)) {
+      value.forEach(addUrl);
+      return;
+    }
+
+    if (typeof value === "object") {
+      addUrl(
+        value.url ||
+        value.image_url ||
+        value.file_url ||
+        value.resource_url ||
+        value.origin_url ||
+        value.src
+      );
+    }
+  }
+
+  candidates.forEach(addUrl);
+
+  return [...new Set(urls.filter(Boolean))];
+}
+
+function isKlingImageComplete(data) {
+  const status = extractKlingImageStatus(data);
+  return ["succeed", "succeeded", "success", "completed", "complete", "finish", "finished"].includes(status);
+}
+
+function isKlingImageFailed(data) {
+  const status = extractKlingImageStatus(data);
+  return ["failed", "failure", "error", "canceled", "cancelled"].includes(status);
+}
+
+function getKlingImageFailureMessage(data) {
+  return (
+    data?.data?.task_status_msg ||
+    data?.data?.message ||
+    data?.message ||
+    data?.msg ||
+    data?.error?.message ||
+    data?.error ||
+    "Kling image generation failed"
+  );
+}
+
+async function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function createKlingImageTask({ prompt, imageUrl = null, size = "1024x1024", n = 1 }) {
+  const url = process.env.KLING_IMAGE_GENERATION_URL || "https://api-singapore.klingai.com/v1/images/generations";
+  const token = createKlingApiToken();
+
+  // Phase 1 safe payload:
+  // Match Kling's documented curl shape as closely as possible.
+  // Do not send aspect_ratio, resolution, result_type, or series_amount yet.
+  const body = {
+    model_name: process.env.KLING_IMAGE_MODEL || "kling-v2-1",
+    prompt,
+    negative_prompt: process.env.KLING_IMAGE_NEGATIVE_PROMPT || "",
+    n: Math.max(1, Math.min(Number(n) || 1, Number(process.env.KLING_IMAGE_MAX_N || 2))),
+    external_task_id: "",
+    callback_url: ""
+  };
+
+  if (imageUrl) {
+    body.image = imageUrl;
+  }
+
+  if (process.env.DEBUG_KLING_IMAGE === "true") {
+    console.log("KLING IMAGE REQUEST:", {
+      url,
+      body: {
+        ...body,
+        image: body.image ? "[image-url-present]" : undefined
+      }
+    });
+  }
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(body)
+  });
+
+  const data = await response.json().catch(() => ({}));
+
+  if (process.env.DEBUG_KLING_IMAGE === "true") {
+    console.log("KLING IMAGE RESPONSE:", JSON.stringify(data, null, 2));
+  }
+
+  if (!response.ok || (data?.code && Number(data.code) !== 0)) {
+    const message =
+      data?.message ||
+      data?.msg ||
+      data?.error?.message ||
+      `Kling image task creation failed with status ${response.status}`;
+
+    const err = new Error(message);
+    err.status = response.status || 502;
+    err.details = data;
+    throw err;
+  }
+
+  const immediateUrls = extractKlingImageUrls(data);
+  if (immediateUrls.length) {
+    return { taskId: extractKlingImageTaskId(data), urls: immediateUrls, raw: data };
+  }
+
+  const taskId = extractKlingImageTaskId(data);
+
+  if (!taskId) {
+    const err = new Error("Kling did not return an image task ID");
+    err.status = 502;
+    err.details = data;
+    throw err;
+  }
+
+  return { taskId, urls: [], raw: data };
+}
+
+async function getKlingImageTaskStatus(taskId) {
+  const template =
+    process.env.KLING_IMAGE_TASK_STATUS_URL_TEMPLATE ||
+    "https://api-singapore.klingai.com/v1/images/generations/{task_id}";
+
+  const url = template.replace("{task_id}", encodeURIComponent(taskId));
+  const token = createKlingApiToken();
+
+  if (process.env.DEBUG_KLING_IMAGE === "true") {
+    console.log("KLING IMAGE STATUS REQUEST:", { taskId, url });
+  }
+
+  const response = await fetch(url, {
+    method: "GET",
+    headers: {
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json"
+    }
+  });
+
+  const data = await response.json().catch(() => ({}));
+
+  if (process.env.DEBUG_KLING_IMAGE === "true") {
+    console.log("KLING IMAGE STATUS RESPONSE:", JSON.stringify(data, null, 2));
+  }
+
+  if (!response.ok || (data?.code && Number(data.code) !== 0)) {
+    const message =
+      data?.message ||
+      data?.msg ||
+      data?.error?.message ||
+      `Kling image status check failed with status ${response.status}`;
+
+    const err = new Error(message);
+    err.status = response.status || 502;
+    err.details = data;
+    throw err;
+  }
+
+  return data;
+}
+
+async function waitForKlingImageUrls(taskId) {
+  const maxAttempts = Number(process.env.KLING_IMAGE_POLL_ATTEMPTS || 60);
+  const pollMs = Number(
+    process.env.KLING_IMAGE_POLL_INTERVAL_MS ||
+    process.env.KLING_IMAGE_POLL_MS ||
+    5000
+  );
+
+  if (process.env.DEBUG_KLING_IMAGE === "true") {
+    console.log("KLING IMAGE POLLING START:", { taskId, maxAttempts, pollMs });
+  }
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    const statusData = await getKlingImageTaskStatus(taskId);
+    const status = extractKlingImageStatus(statusData);
+    const urls = extractKlingImageUrls(statusData);
+
+    if (process.env.DEBUG_KLING_IMAGE === "true") {
+      console.log("KLING IMAGE POLL RESULT:", {
+        taskId,
+        attempt,
+        status,
+        urlsFound: urls.length
+      });
+    }
+
+    if (urls.length && (isKlingImageComplete(statusData) || !status)) {
+      return urls;
+    }
+
+    if (isKlingImageFailed(statusData)) {
+      const err = new Error(getKlingImageFailureMessage(statusData));
+      err.status = 502;
+      err.details = statusData;
+      throw err;
+    }
+
+    await sleep(pollMs);
+  }
+
+  const err = new Error("Kling image generation timed out");
+  err.status = 504;
+  throw err;
+}
+
+async function uploadGeneratedKlingImageToSupabase({ userId, sourceUrl }) {
+  if (!userId || !sourceUrl) return sourceUrl;
+
+  const response = await fetch(sourceUrl, {
+    headers: {
+      "User-Agent": "Qeecko/1.0"
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error(`Could not download generated image from Kling: HTTP ${response.status}`);
+  }
+
+  const rawContentType = response.headers.get("content-type") || "image/png";
+  const contentType = rawContentType.includes("text/html") ? "image/png" : rawContentType.split(";")[0];
+  const arrayBuffer = await response.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
+
+  if (!buffer.length) {
+    throw new Error("Kling returned an empty image file");
+  }
+
+  const extension =
+    contentType.includes("jpeg") || contentType.includes("jpg") ? "jpg" :
+    contentType.includes("webp") ? "webp" :
+    "png";
+
+  const storagePath =
+    `${userId}/generated/kling-${Date.now()}-${crypto.randomBytes(6).toString("hex")}.${extension}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from("images")
+    .upload(storagePath, buffer, {
+      contentType: contentType || "image/png",
+      cacheControl: "3600",
+      upsert: false
+    });
+
+  if (uploadError) {
+    console.error("KLING IMAGE STORAGE UPLOAD ERROR:", uploadError);
+    throw new Error(`Could not save Kling image to Supabase Storage: ${uploadError.message || "unknown storage error"}`);
+  }
+
+  const { data } = supabase.storage
+    .from("images")
+    .getPublicUrl(storagePath);
+
+  return data?.publicUrl || sourceUrl;
+}
+
+async function generateImagesWithKling({ prompt, n = 4, size = "1024x1024", imageUrl = null, userId = null }) {
+  const count = Math.max(1, Math.min(Number(n) || 1, 4));
+  const maxPerRequest = Math.max(1, Math.min(Number(process.env.KLING_IMAGE_MAX_N || 2), 2));
+  const output = [];
+
+  while (output.length < count) {
+    const batchSize = Math.min(maxPerRequest, count - output.length);
+    const task = await createKlingImageTask({ prompt, imageUrl, size, n: batchSize });
+    const urls = task.urls.length ? task.urls : await waitForKlingImageUrls(task.taskId);
+    const publicUrls = userId
+      ? await Promise.all(urls.map(url => uploadGeneratedKlingImageToSupabase({ userId, sourceUrl: url })))
+      : urls;
+
+    output.push(...publicUrls.map(url => ({ url })));
+  }
+
+  if (!output.length) {
+    const err = new Error("Kling did not return image URLs");
+    err.status = 502;
+    throw err;
+  }
+
+  return {
+    provider: "kling",
+    model: process.env.KLING_IMAGE_MODEL || "kling-v2-1",
+    data: output.slice(0, count)
+  };
+}
+
+
+// =========================
+// KLING VIDEO GENERATION HELPERS
+// =========================
+
+const VIDEO_CREDIT_PRICES = {
+  5: Number(process.env.VIDEO_5S_CREDITS || 3),
+  10: Number(process.env.VIDEO_10S_CREDITS || 6)
+};
+
+const IMAGE_TO_VIDEO_CREDIT_PRICES = {
+  5: Number(process.env.IMAGE_VIDEO_5S_CREDITS || 3),
+  10: Number(process.env.IMAGE_VIDEO_10S_CREDITS || 6)
+};
+
+function base64Url(input) {
+  return Buffer
+    .from(input)
+    .toString("base64")
+    .replace(/=/g, "")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_");
+}
+
+function createKlingApiToken() {
+  const accessKey = process.env.KLING_ACCESS_KEY;
+  const secretKey = process.env.KLING_SECRET_KEY;
+
+  if (!accessKey || !secretKey) {
+    throw new Error("Kling API keys are not configured");
+  }
+
+  const now = Math.floor(Date.now() / 1000);
+
+  const header = {
+    alg: "HS256",
+    typ: "JWT"
+  };
+
+  const payload = {
+    iss: accessKey,
+    exp: now + 1800,
+    nbf: now - 5
+  };
+
+  const encodedHeader = base64Url(JSON.stringify(header));
+  const encodedPayload = base64Url(JSON.stringify(payload));
+  const unsignedToken = `${encodedHeader}.${encodedPayload}`;
+
+  const signature = crypto
+    .createHmac("sha256", secretKey)
+    .update(unsignedToken)
+    .digest("base64")
+    .replace(/=/g, "")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_");
+
+  return `${unsignedToken}.${signature}`;
+}
+
+function getVideoCreditPrice(duration) {
+  const safeDuration = Number(duration);
+  return VIDEO_CREDIT_PRICES[safeDuration] || null;
+}
+
+function getImageToVideoCreditPrice(duration) {
+  const safeDuration = Number(duration);
+  return IMAGE_TO_VIDEO_CREDIT_PRICES[safeDuration] || null;
+}
+
+function normalizeVideoDuration(duration) {
+  const safeDuration = Number(duration);
+  return [5, 10].includes(safeDuration) ? safeDuration : null;
+}
+
+function normalizeAspectRatio(aspectRatio) {
+  const value = String(aspectRatio || "16:9").trim();
+  return ["16:9", "9:16", "1:1"].includes(value) ? value : "16:9";
+}
+
+function extractKlingTaskId(data) {
+  return (
+    data?.data?.task_id ||
+    data?.data?.id ||
+    data?.task_id ||
+    data?.id ||
+    data?.request_id ||
+    null
+  );
+}
+
+function extractKlingStatus(data) {
+  return String(
+    data?.data?.task_status ||
+    data?.data?.status ||
+    data?.task_status ||
+    data?.status ||
+    ""
+  ).toLowerCase();
+}
+
+function extractKlingFailureMessage(data) {
+  return (
+    data?.data?.task_status_msg ||
+    data?.data?.message ||
+    data?.message ||
+    data?.error?.message ||
+    data?.error ||
+    "Video generation failed"
+  );
+}
+
+function extractKlingVideoUrl(data) {
+  const result = data?.data?.task_result || data?.task_result || data?.data?.result || data?.result || data?.data;
+  const videos = result?.videos || result?.video || data?.data?.videos || data?.videos;
+
+  if (Array.isArray(videos) && videos.length) {
+    return videos[0]?.url || videos[0]?.video_url || videos[0]?.file_url || videos[0];
+  }
+
+  if (typeof videos === "string") return videos;
+
+  return (
+    result?.url ||
+    result?.video_url ||
+    result?.file_url ||
+    data?.data?.url ||
+    data?.url ||
+    null
+  );
+}
+
+function extractKlingThumbnailUrl(data) {
+  const result = data?.data?.task_result || data?.task_result || data?.data?.result || data?.result || data?.data;
+  const videos = result?.videos || result?.video || data?.data?.videos || data?.videos;
+
+  if (Array.isArray(videos) && videos.length) {
+    return videos[0]?.cover_image_url || videos[0]?.thumbnail_url || videos[0]?.image_url || null;
+  }
+
+  return result?.cover_image_url || result?.thumbnail_url || data?.data?.thumbnail_url || null;
+}
+
+async function createKlingTextToVideoTask({ prompt, duration, aspectRatio = "16:9" }) {
+  const url = process.env.KLING_TEXT_TO_VIDEO_URL || "https://api.klingai.com/v1/videos/text2video";
+  const token = createKlingApiToken();
+
+  const body = {
+    model_name: process.env.KLING_VIDEO_MODEL || "kling-v1",
+    prompt,
+    duration: String(duration),
+    aspect_ratio: normalizeAspectRatio(aspectRatio),
+    mode: process.env.KLING_VIDEO_MODE || "std",
+    cfg_scale: Number(process.env.KLING_CFG_SCALE || 0.5)
+  };
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(body)
+  });
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok || (data?.code && Number(data.code) !== 0)) {
+    const message =
+      data?.message ||
+      data?.msg ||
+      data?.error?.message ||
+      `Kling task creation failed with status ${response.status}`;
+
+    const err = new Error(message);
+    err.status = response.status || 502;
+    err.details = data;
+    throw err;
+  }
+
+  const taskId = extractKlingTaskId(data);
+
+  if (!taskId) {
+    const err = new Error("Kling did not return a task ID");
+    err.status = 502;
+    err.details = data;
+    throw err;
+  }
+
+  return { taskId, raw: data };
+}
+
+async function createKlingImageToVideoTask({ prompt, imageUrl, duration, aspectRatio = "16:9" }) {
+  const url = process.env.KLING_IMAGE_TO_VIDEO_URL || "https://api.klingai.com/v1/videos/image2video";
+  const token = createKlingApiToken();
+
+  if (!imageUrl || typeof imageUrl !== "string") {
+    throw new Error("Image URL is required for image-to-video");
+  }
+
+  const body = {
+    model_name: process.env.KLING_IMAGE_VIDEO_MODEL || process.env.KLING_VIDEO_MODEL || "kling-v1",
+    image: imageUrl,
+    image_url: imageUrl,
+    prompt: prompt || "Animate this image naturally with cinematic motion.",
+    duration: String(duration),
+    aspect_ratio: normalizeAspectRatio(aspectRatio),
+    mode: process.env.KLING_IMAGE_VIDEO_MODE || process.env.KLING_VIDEO_MODE || "std",
+    cfg_scale: Number(process.env.KLING_CFG_SCALE || 0.5)
+  };
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(body)
+  });
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok || (data?.code && Number(data.code) !== 0)) {
+    const message =
+      data?.message ||
+      data?.msg ||
+      data?.error?.message ||
+      `Kling image-to-video task creation failed with status ${response.status}`;
+
+    const err = new Error(message);
+    err.status = response.status || 502;
+    err.details = data;
+    throw err;
+  }
+
+  const taskId = extractKlingTaskId(data);
+
+  if (!taskId) {
+    const err = new Error("Kling did not return an image-to-video task ID");
+    err.status = 502;
+    err.details = data;
+    throw err;
+  }
+
+  return { taskId, raw: data };
+}
+
+async function getKlingTaskStatus(taskId, generationType = "text_to_video") {
+  const template = generationType === "image_to_video"
+    ? (process.env.KLING_IMAGE_TASK_STATUS_URL_TEMPLATE ||
+       process.env.KLING_TASK_STATUS_URL_TEMPLATE ||
+       "https://api.klingai.com/v1/videos/image2video/{task_id}")
+    : (process.env.KLING_TASK_STATUS_URL_TEMPLATE ||
+       "https://api.klingai.com/v1/videos/text2video/{task_id}");
+
+  const url = template.replace("{task_id}", encodeURIComponent(taskId));
+  const token = createKlingApiToken();
+
+  const response = await fetch(url, {
+    method: "GET",
+    headers: {
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json"
+    }
+  });
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok || (data?.code && Number(data.code) !== 0)) {
+    const message =
+      data?.message ||
+      data?.msg ||
+      data?.error?.message ||
+      `Kling status check failed with status ${response.status}`;
+
+    const err = new Error(message);
+    err.status = response.status || 502;
+    err.details = data;
+    throw err;
+  }
+
+  return data;
+}
+
+async function ensureVideosBucket() {
+  const { data: buckets, error: listError } = await supabase.storage.listBuckets();
+
+  if (listError) {
+    console.warn("VIDEO BUCKET LIST WARNING:", listError.message || listError);
+    return;
+  }
+
+  const exists = (buckets || []).some(bucket => bucket.name === "videos");
+  if (exists) return;
+
+  const { error: createError } = await supabase.storage.createBucket("videos", {
+    public: true,
+    fileSizeLimit: 524288000,
+    allowedMimeTypes: ["video/mp4", "video/mpeg", "video/quicktime", "application/octet-stream"]
+  });
+
+  if (createError) {
+    console.warn("VIDEO BUCKET CREATE WARNING:", createError.message || createError);
+  }
+}
+
+async function uploadGeneratedVideoToSupabase({ userId, videoId, sourceUrl }) {
+  if (!sourceUrl) {
+    throw new Error("Missing generated video URL");
+  }
+
+  await ensureVideosBucket();
+
+  const response = await fetch(sourceUrl, {
+    headers: {
+      "User-Agent": "Qeecko/1.0"
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error(`Could not download generated video from Kling: HTTP ${response.status}`);
+  }
+
+  const rawContentType = response.headers.get("content-type") || "video/mp4";
+  const contentType = rawContentType.includes("text/html") ? "video/mp4" : rawContentType.split(";")[0];
+  const arrayBuffer = await response.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
+
+  if (!buffer.length) {
+    throw new Error("Kling returned an empty video file");
+  }
+
+  const storagePath = `${userId}/${videoId}.mp4`;
+
+  const { error: uploadError } = await supabase.storage
+    .from("videos")
+    .upload(storagePath, buffer, {
+      contentType: contentType || "video/mp4",
+      cacheControl: "3600",
+      upsert: true
+    });
+
+  if (uploadError) {
+    console.error("VIDEO STORAGE UPLOAD ERROR:", {
+      message: uploadError.message,
+      statusCode: uploadError.statusCode,
+      error: uploadError.error,
+      storagePath,
+      contentType,
+      bytes: buffer.length
+    });
+
+    throw new Error(`Could not save video to Supabase Storage: ${uploadError.message || "unknown storage error"}`);
+  }
+
+  const { data } = supabase.storage
+    .from("videos")
+    .getPublicUrl(storagePath);
+
+  return data?.publicUrl || null;
+}
+
+
+function extractVideoStoragePathFromPublicUrl(url) {
+  if (!url || typeof url !== "string") return null;
+
+  const marker = "/storage/v1/object/public/videos/";
+
+  if (url.includes(marker)) {
+    return decodeURIComponent(url.split(marker)[1]);
+  }
+
+  if (url.includes("/videos/")) {
+    return decodeURIComponent(url.split("/videos/")[1]);
+  }
+
+  return null;
+}
+
+async function getVideoEngagement(videoId, viewerId = null) {
+  const [{ count: likesCount }, { count: commentsCount }, likedResult] = await Promise.all([
+    supabase
+      .from("video_likes")
+      .select("id", { count: "exact", head: true })
+      .eq("video_id", videoId),
+    supabase
+      .from("video_comments")
+      .select("id", { count: "exact", head: true })
+      .eq("video_id", videoId),
+    viewerId
+      ? supabase
+          .from("video_likes")
+          .select("id")
+          .eq("video_id", videoId)
+          .eq("user_id", viewerId)
+          .maybeSingle()
+      : Promise.resolve({ data: null })
+  ]);
+
+  return {
+    likes: likesCount || 0,
+    comments: commentsCount || 0,
+    liked: Boolean(likedResult?.data)
+  };
+}
+
+
+async function countCreatorCommentsReceived(userId) {
+  if (!userId) return 0;
+
+  try {
+    const [{ data: imageRows, error: imageError }, { data: videoRows, error: videoError }] = await Promise.all([
+      supabase.from("images").select("id").eq("user_id", userId),
+      supabase.from("videos").select("id").eq("user_id", userId)
+    ]);
+
+    if (imageError) console.warn("PROFILE IMAGE IDS FOR COMMENTS WARNING:", imageError.message || imageError);
+    if (videoError) console.warn("PROFILE VIDEO IDS FOR COMMENTS WARNING:", videoError.message || videoError);
+
+    const imageIds = (imageRows || []).map(row => row.id).filter(Boolean);
+    const videoIds = (videoRows || []).map(row => row.id).filter(Boolean);
+
+    const [imageCommentsResult, videoCommentsResult] = await Promise.all([
+      imageIds.length
+        ? supabase.from("image_comments").select("id", { count: "exact", head: true }).in("image_id", imageIds).eq("is_hidden", false)
+        : Promise.resolve({ count: 0 }),
+      videoIds.length
+        ? supabase.from("video_comments").select("id", { count: "exact", head: true }).in("video_id", videoIds)
+        : Promise.resolve({ count: 0 })
+    ]);
+
+    if (imageCommentsResult.error) {
+      console.warn("PROFILE IMAGE COMMENTS COUNT WARNING:", imageCommentsResult.error.message || imageCommentsResult.error);
+    }
+
+    if (videoCommentsResult.error) {
+      console.warn("PROFILE VIDEO COMMENTS COUNT WARNING:", videoCommentsResult.error.message || videoCommentsResult.error);
+    }
+
+    return Number(imageCommentsResult.count || 0) + Number(videoCommentsResult.count || 0);
+  } catch (err) {
+    console.warn("PROFILE COMMENTS RECEIVED WARNING:", err.message || err);
+    return 0;
+  }
+}
+
+async function recordProfileView(profileUserId, viewerUserId = null) {
+  if (!profileUserId || profileUserId === viewerUserId) return;
+
+  const { error } = await supabase
+    .from("profile_views")
+    .insert({
+      profile_user_id: profileUserId,
+      viewer_user_id: viewerUserId || null
+    });
+
+  if (error && !["42P01", "PGRST205"].includes(error.code)) {
+    console.warn("PROFILE VIEW INSERT WARNING:", error.message || error);
+  }
+}
+
+async function countProfileViews(profileUserId) {
+  if (!profileUserId) return 0;
+
+  const { count, error } = await supabase
+    .from("profile_views")
+    .select("id", { count: "exact", head: true })
+    .eq("profile_user_id", profileUserId);
+
+  if (error) {
+    if (!["42P01", "PGRST205"].includes(error.code)) {
+      console.warn("PROFILE VIEW COUNT WARNING:", error.message || error);
+    }
+    return 0;
+  }
+
+  return Number(count || 0);
+}
+
+
+
+function isPublicImageUrl(value) {
+  const url = String(value || "").trim();
+  return /^https?:\/\//i.test(url);
+}
+
+
+
+async function editImageFromUrl({ imageUrl, prompt, n = 4, size = "1024x1024", userId = null }) {
+  if (IMAGE_PROVIDER === "kling") {
+    return generateImages({
+      prompt,
+      n,
+      size,
+      imageUrl,
+      userId
+    });
+  }
+
+  return generateImagesWithOpenAIEdit({
+    imageUrl,
+    prompt,
+    n,
+    size
+  });
+}
+
+async function generateImagesWithOpenAIEdit({ imageUrl, prompt, n = 4, size = "1024x1024" }) {
   const imageResponse = await fetch(imageUrl);
 
   if (!imageResponse.ok) {
@@ -801,10 +1686,15 @@ const CREDIT_PACKAGES = {
     priceId: process.env.STRIPE_PRICE_25,
     label: "25 Credits"
   },
-  100: {
-    credits: 100,
-    priceId: process.env.STRIPE_PRICE_100,
-    label: "100 Credits"
+  75: {
+    credits: 75,
+    priceId: process.env.STRIPE_PRICE_75,
+    label: "75 Credits"
+  },
+  200: {
+    credits: 200,
+    priceId: process.env.STRIPE_PRICE_200,
+    label: "200 Credits"
   },
   500: {
     credits: 500,
@@ -953,7 +1843,8 @@ app.post("/generate-image", async (req, res) => {
       const data = await generateImages({
         prompt: optimizedPrompt,
         n: 4,
-        size: "1024x1024"
+        size: "1024x1024",
+        userId: user.id
       });
 
       await logEvent(user.id, "image_generated", { count: 4 });
@@ -977,6 +1868,836 @@ app.post("/generate-image", async (req, res) => {
   }
 });
 
+
+// =========================
+// VIDEO GENERATION — KLING PHASE 1
+// =========================
+app.post("/api/generate-video", async (req, res) => {
+  let videoRow = null;
+  let creditsUsed = 0;
+
+  try {
+    const user = await getUser(req);
+
+    if (!user) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const prompt = String(req.body.prompt || "").trim();
+    const duration = normalizeVideoDuration(req.body.duration);
+    const aspectRatio = normalizeAspectRatio(req.body.aspect_ratio || req.body.aspectRatio);
+
+    if (!prompt) {
+      return res.status(400).json({ error: "Prompt required" });
+    }
+
+    if (!duration) {
+      return res.status(400).json({ error: "Duration must be 5 or 10 seconds" });
+    }
+
+    if (prompt.length > 2500) {
+      return res.status(400).json({ error: "Prompt must be 2500 characters or less" });
+    }
+
+    creditsUsed = getVideoCreditPrice(duration);
+
+    if (!creditsUsed) {
+      return res.status(500).json({ error: "Video credit pricing is not configured" });
+    }
+
+    const creditCharge = await chargeCredits(user.id, creditsUsed, {
+      transactionType: "video_generation",
+      description: `Kling ${duration}s video generation`,
+      metadata: {
+        route: "/api/generate-video",
+        provider: "kling",
+        duration,
+        aspect_ratio: aspectRatio
+      }
+    });
+
+    if (!creditCharge.ok) {
+      return res.status(403).json({
+        error: `Not enough credits. ${duration}s video requires ${creditsUsed} credits.`,
+        credits: creditCharge.credits
+      });
+    }
+
+    const { data: insertedVideo, error: insertError } = await supabase
+      .from("videos")
+      .insert({
+        user_id: user.id,
+        prompt,
+        duration,
+        credits_used: creditsUsed,
+        status: "submitting",
+        is_public: false,
+        moderation_status: "pending"
+      })
+      .select("id, user_id, prompt, duration, credits_used, status, created_at")
+      .single();
+
+    if (insertError) {
+      console.error("VIDEO INSERT ERROR:", insertError);
+      await refundCredits(user.id, creditsUsed, {
+        transactionType: "video_refund",
+        description: "Refund after failed video record creation",
+        metadata: { route: "/api/generate-video", duration }
+      });
+      return res.status(500).json({ error: "Could not create video record" });
+    }
+
+    videoRow = insertedVideo;
+
+    try {
+      const task = await createKlingTextToVideoTask({
+        prompt,
+        duration,
+        aspectRatio
+      });
+
+      const { data: updatedVideo, error: updateError } = await supabase
+        .from("videos")
+        .update({
+          kling_task_id: task.taskId,
+          status: "processing"
+        })
+        .eq("id", videoRow.id)
+        .eq("user_id", user.id)
+        .select("id, kling_task_id, status, duration, credits_used, created_at")
+        .single();
+
+      if (updateError) {
+        console.error("VIDEO TASK UPDATE ERROR:", updateError);
+        return res.status(500).json({ error: "Video task created, but could not update Qeecko record" });
+      }
+
+      await logEvent(user.id, "video_generation_started", {
+        video_id: videoRow.id,
+        kling_task_id: task.taskId,
+        duration,
+        credits_used: creditsUsed
+      });
+
+      return res.json({
+        success: true,
+        video: updatedVideo,
+        credits: creditCharge.credits,
+        message: "Video generation started"
+      });
+
+    } catch (klingError) {
+      console.error("KLING CREATE VIDEO ERROR:", klingError);
+
+      await supabase
+        .from("videos")
+        .update({
+          status: "failed",
+          error_message: klingError.message || "Kling video generation failed"
+        })
+        .eq("id", videoRow.id)
+        .eq("user_id", user.id);
+
+      await refundCredits(user.id, creditsUsed, {
+        transactionType: "video_refund",
+        description: "Refund after failed Kling video task creation",
+        metadata: {
+          route: "/api/generate-video",
+          video_id: videoRow.id,
+          duration
+        }
+      });
+
+      return res.status(klingError.status || 502).json({
+        error: klingError.message || "Kling video generation failed"
+      });
+    }
+
+  } catch (err) {
+    console.error("VIDEO GENERATION SERVER ERROR:", err);
+    captureServerError(err, { route: "/api/generate-video" });
+    res.status(err.status || 500).json({ error: err.message || "Video generation failed" });
+  }
+});
+
+app.post("/api/generate-image-video", async (req, res) => {
+  let videoRow = null;
+  let creditsUsed = 0;
+
+  try {
+    const user = await getUser(req);
+
+    if (!user) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const imageUrl = String(req.body.image_url || req.body.imageUrl || "").trim();
+    const prompt = String(req.body.prompt || "Animate this image naturally with cinematic motion.").trim();
+    const duration = normalizeVideoDuration(req.body.duration);
+    const aspectRatio = normalizeAspectRatio(req.body.aspect_ratio || req.body.aspectRatio);
+
+    if (!imageUrl) {
+      return res.status(400).json({ error: "Image URL required" });
+    }
+
+    if (!/^https?:\/\//i.test(imageUrl)) {
+      return res.status(400).json({ error: "Image URL must be a public URL" });
+    }
+
+    if (!duration) {
+      return res.status(400).json({ error: "Duration must be 5 or 10 seconds" });
+    }
+
+    if (prompt.length > 2500) {
+      return res.status(400).json({ error: "Prompt must be 2500 characters or less" });
+    }
+
+    creditsUsed = getImageToVideoCreditPrice(duration);
+
+    if (!creditsUsed) {
+      return res.status(500).json({ error: "Image-to-video credit pricing is not configured" });
+    }
+
+    const creditCharge = await chargeCredits(user.id, creditsUsed, {
+      transactionType: "image_to_video_generation",
+      description: `Kling ${duration}s image-to-video generation`,
+      metadata: {
+        route: "/api/generate-image-video",
+        provider: "kling",
+        duration,
+        aspect_ratio: aspectRatio,
+        source_image_url: imageUrl
+      }
+    });
+
+    if (!creditCharge.ok) {
+      return res.status(403).json({
+        error: `Not enough credits. ${duration}s image-to-video requires ${creditsUsed} credits.`,
+        credits: creditCharge.credits
+      });
+    }
+
+    const { data: insertedVideo, error: insertError } = await supabase
+      .from("videos")
+      .insert({
+        user_id: user.id,
+        prompt,
+        source_image_url: imageUrl,
+        generation_type: "image_to_video",
+        thumbnail_url: imageUrl,
+        duration,
+        credits_used: creditsUsed,
+        status: "submitting",
+        is_public: false,
+        moderation_status: "pending"
+      })
+      .select("id, user_id, prompt, source_image_url, generation_type, duration, credits_used, status, created_at")
+      .single();
+
+    if (insertError) {
+      console.error("IMAGE VIDEO INSERT ERROR:", insertError);
+      await refundCredits(user.id, creditsUsed, {
+        transactionType: "video_refund",
+        description: "Refund after failed image-to-video record creation",
+        metadata: { route: "/api/generate-image-video", duration }
+      });
+      return res.status(500).json({ error: "Could not create image-to-video record" });
+    }
+
+    videoRow = insertedVideo;
+
+    try {
+      const task = await createKlingImageToVideoTask({
+        prompt,
+        imageUrl,
+        duration,
+        aspectRatio
+      });
+
+      const { data: updatedVideo, error: updateError } = await supabase
+        .from("videos")
+        .update({
+          kling_task_id: task.taskId,
+          status: "processing"
+        })
+        .eq("id", videoRow.id)
+        .eq("user_id", user.id)
+        .select("id, kling_task_id, status, generation_type, source_image_url, duration, credits_used, created_at")
+        .single();
+
+      if (updateError) {
+        console.error("IMAGE VIDEO TASK UPDATE ERROR:", updateError);
+        return res.status(500).json({ error: "Image-to-video task created, but could not update Qeecko record" });
+      }
+
+      await logEvent(user.id, "image_to_video_generation_started", {
+        video_id: videoRow.id,
+        kling_task_id: task.taskId,
+        duration,
+        credits_used: creditsUsed
+      });
+
+      return res.json({
+        success: true,
+        video: updatedVideo,
+        credits: creditCharge.credits,
+        message: "Image-to-video generation started"
+      });
+
+    } catch (klingError) {
+      console.error("KLING CREATE IMAGE VIDEO ERROR:", klingError);
+
+      await supabase
+        .from("videos")
+        .update({
+          status: "failed",
+          error_message: klingError.message || "Kling image-to-video generation failed"
+        })
+        .eq("id", videoRow.id)
+        .eq("user_id", user.id);
+
+      await refundCredits(user.id, creditsUsed, {
+        transactionType: "video_refund",
+        description: "Refund after failed Kling image-to-video task creation",
+        metadata: {
+          route: "/api/generate-image-video",
+          video_id: videoRow.id,
+          duration
+        }
+      });
+
+      return res.status(klingError.status || 502).json({
+        error: klingError.message || "Kling image-to-video generation failed"
+      });
+    }
+
+  } catch (err) {
+    console.error("IMAGE VIDEO SERVER ERROR:", err);
+    captureServerError(err, { route: "/api/generate-image-video" });
+    res.status(err.status || 500).json({ error: err.message || "Image-to-video failed" });
+  }
+});
+
+app.get("/api/video-status/:videoId", async (req, res) => {
+  try {
+    const user = await getUser(req);
+
+    if (!user) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const videoId = String(req.params.videoId || "").trim();
+
+    const { data: video, error: videoError } = await supabase
+      .from("videos")
+      .select("id, user_id, prompt, kling_task_id, video_url, thumbnail_url, duration, credits_used, status, error_message, generation_type, source_image_url, created_at")
+      .eq("id", videoId)
+      .eq("user_id", user.id)
+      .single();
+
+    if (videoError || !video) {
+      return res.status(404).json({ error: "Video not found" });
+    }
+
+    if (["completed", "failed"].includes(video.status)) {
+      return res.json({ video });
+    }
+
+    if (!video.kling_task_id) {
+      return res.json({ video });
+    }
+
+    const statusData = await getKlingTaskStatus(video.kling_task_id, video.generation_type || "text_to_video");
+    const klingStatus = extractKlingStatus(statusData);
+
+    const failedStatuses = new Set(["failed", "failure", "fail", "error"]);
+    const completedStatuses = new Set(["succeed", "succeeded", "success", "completed", "complete"]);
+
+    if (failedStatuses.has(klingStatus)) {
+      const message = extractKlingFailureMessage(statusData);
+
+      const { data: failedVideo } = await supabase
+        .from("videos")
+        .update({
+          status: "failed",
+          error_message: message
+        })
+        .eq("id", video.id)
+        .eq("user_id", user.id)
+        .select("id, user_id, prompt, kling_task_id, video_url, thumbnail_url, duration, credits_used, status, error_message, generation_type, source_image_url, created_at")
+        .single();
+
+      await logEvent(user.id, "video_generation_failed", {
+        video_id: video.id,
+        kling_task_id: video.kling_task_id,
+        message
+      });
+
+      return res.json({ video: failedVideo || { ...video, status: "failed", error_message: message } });
+    }
+
+    if (completedStatuses.has(klingStatus)) {
+      let publicVideoUrl = video.video_url;
+      const klingVideoUrl = extractKlingVideoUrl(statusData);
+      const thumbnailUrl = extractKlingThumbnailUrl(statusData);
+
+      if (!publicVideoUrl && klingVideoUrl) {
+        try {
+          publicVideoUrl = await uploadGeneratedVideoToSupabase({
+            userId: user.id,
+            videoId: video.id,
+            sourceUrl: klingVideoUrl
+          });
+        } catch (storageError) {
+          console.error("VIDEO STORAGE SAVE FAILED; USING KLING URL FALLBACK:", storageError);
+          publicVideoUrl = klingVideoUrl;
+        }
+      }
+
+      if (!publicVideoUrl) {
+        return res.status(502).json({ error: "Kling completed the task but did not return a video URL" });
+      }
+
+      const { data: completedVideo, error: updateError } = await supabase
+        .from("videos")
+        .update({
+          status: "completed",
+          video_url: publicVideoUrl,
+          thumbnail_url: thumbnailUrl || video.thumbnail_url || null,
+          error_message: null
+        })
+        .eq("id", video.id)
+        .eq("user_id", user.id)
+        .select("id, user_id, prompt, kling_task_id, video_url, thumbnail_url, duration, credits_used, status, error_message, generation_type, source_image_url, created_at")
+        .single();
+
+      if (updateError) {
+        console.error("VIDEO COMPLETE UPDATE ERROR:", updateError);
+        return res.status(500).json({ error: "Could not save completed video" });
+      }
+
+      await logEvent(user.id, "video_generation_completed", {
+        video_id: video.id,
+        kling_task_id: video.kling_task_id,
+        duration: video.duration,
+        credits_used: video.credits_used
+      });
+
+      return res.json({ video: completedVideo });
+    }
+
+    const { data: processingVideo } = await supabase
+      .from("videos")
+      .update({ status: "processing" })
+      .eq("id", video.id)
+      .eq("user_id", user.id)
+      .select("id, user_id, prompt, kling_task_id, video_url, thumbnail_url, duration, credits_used, status, error_message, generation_type, source_image_url, created_at")
+      .single();
+
+    return res.json({ video: processingVideo || { ...video, status: "processing" } });
+
+  } catch (err) {
+    console.error("VIDEO STATUS SERVER ERROR:", err);
+    captureServerError(err, { route: "/api/video-status/:videoId" });
+    res.status(err.status || 500).json({ error: err.message || "Video status check failed" });
+  }
+});
+
+app.get("/api/my-videos", async (req, res) => {
+  try {
+    const user = await getUser(req);
+
+    if (!user) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const limit = Math.min(Math.max(Number(req.query.limit || 50), 1), 100);
+
+    const { data, error } = await supabase
+      .from("videos")
+      .select("id, prompt, video_url, thumbnail_url, duration, credits_used, status, error_message, generation_type, source_image_url, is_public, moderation_status, created_at")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      console.error("MY VIDEOS ERROR:", error);
+      return res.status(500).json({ error: "Could not load videos" });
+    }
+
+    const videos = data || [];
+    const videoIds = videos.map(video => video.id).filter(Boolean);
+    const likesByVideo = new Map();
+    const commentsByVideo = new Map();
+    const likedByMe = new Set();
+
+    if (videoIds.length) {
+      const [{ data: likes }, { data: comments }, { data: myLikes }] = await Promise.all([
+        supabase.from("video_likes").select("video_id").in("video_id", videoIds),
+        supabase.from("video_comments").select("video_id").in("video_id", videoIds),
+        supabase.from("video_likes").select("video_id").eq("user_id", user.id).in("video_id", videoIds)
+      ]);
+
+      (likes || []).forEach(row => {
+        likesByVideo.set(row.video_id, (likesByVideo.get(row.video_id) || 0) + 1);
+      });
+
+      (comments || []).forEach(row => {
+        commentsByVideo.set(row.video_id, (commentsByVideo.get(row.video_id) || 0) + 1);
+      });
+
+      (myLikes || []).forEach(row => likedByMe.add(row.video_id));
+    }
+
+    res.json({
+      videos: videos.map(video => ({
+        ...video,
+        like_count: likesByVideo.get(video.id) || 0,
+        comment_count: commentsByVideo.get(video.id) || 0,
+        liked_by_me: likedByMe.has(video.id)
+      }))
+    });
+
+  } catch (err) {
+    console.error("MY VIDEOS SERVER ERROR:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+
+
+// =========================
+// RECOMMENDATIONS - MORE LIKE THIS
+// =========================
+function tokenizeRecommendationPrompt(value) {
+  return [...new Set(
+    String(value || "")
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, " ")
+      .split(/\s+/)
+      .map(word => word.trim())
+      .filter(word => word.length >= 4)
+      .filter(word => ![
+        "with", "from", "this", "that", "into", "high", "quality",
+        "cinematic", "detailed", "realistic", "style", "image", "video"
+      ].includes(word))
+  )];
+}
+
+function recommendationRecencyScore(createdAt) {
+  const time = createdAt ? new Date(createdAt).getTime() : 0;
+  if (!time || Number.isNaN(time)) return 0;
+
+  const ageDays = Math.max(0, (Date.now() - time) / 86400000);
+  return Math.max(0, 20 - ageDays);
+}
+
+function promptSimilarityScore(targetWords, prompt) {
+  if (!targetWords?.length) return 0;
+  const words = new Set(tokenizeRecommendationPrompt(prompt));
+  let matches = 0;
+
+  targetWords.forEach(word => {
+    if (words.has(word)) matches++;
+  });
+
+  return matches * 18;
+}
+
+function tagSimilarityScore(targetTags, tags) {
+  if (!targetTags?.length || !Array.isArray(tags)) return 0;
+
+  const target = new Set(targetTags.map(tag => String(tag).toLowerCase().trim()).filter(Boolean));
+  let matches = 0;
+
+  tags.forEach(tag => {
+    if (target.has(String(tag).toLowerCase().trim())) matches++;
+  });
+
+  return matches * 80;
+}
+
+async function getBulkVideoEngagement(videoIds = []) {
+  const ids = [...new Set((videoIds || []).filter(Boolean))];
+  const likesByVideo = new Map();
+  const commentsByVideo = new Map();
+
+  if (!ids.length) {
+    return { likesByVideo, commentsByVideo };
+  }
+
+  const [{ data: likes }, { data: comments }] = await Promise.all([
+    supabase.from("video_likes").select("video_id").in("video_id", ids),
+    supabase.from("video_comments").select("video_id").in("video_id", ids)
+  ]);
+
+  (likes || []).forEach(row => {
+    likesByVideo.set(row.video_id, (likesByVideo.get(row.video_id) || 0) + 1);
+  });
+
+  (comments || []).forEach(row => {
+    commentsByVideo.set(row.video_id, (commentsByVideo.get(row.video_id) || 0) + 1);
+  });
+
+  return { likesByVideo, commentsByVideo };
+}
+
+app.get("/api/recommendations/:type/:id", async (req, res) => {
+  try {
+    const mediaType = String(req.params.type || "").toLowerCase();
+    const isVideo = mediaType === "video" || mediaType === "videos";
+    const rawId = String(req.params.id || "").trim();
+
+    if (!["image", "images", "video", "videos"].includes(mediaType) || !rawId) {
+      return res.status(400).json({ error: "Invalid recommendation request" });
+    }
+
+    const targetResult = isVideo
+      ? await supabase
+          .from("videos")
+          .select("id, user_id, prompt, video_url, thumbnail_url, created_at, view_count")
+          .eq("id", rawId)
+          .not("video_url", "is", null)
+          .single()
+      : await supabase
+          .from("images")
+          .select("id, user_id, image_url, prompt, tags, created_at, view_count")
+          .eq("id", Number(rawId))
+          .single();
+
+    if (targetResult.error || !targetResult.data) {
+      return res.status(404).json({ error: "Media not found" });
+    }
+
+    const target = targetResult.data;
+    const targetWords = tokenizeRecommendationPrompt(target.prompt);
+    const targetTags = Array.isArray(target.tags) ? target.tags : [];
+
+    const [imagesResult, videosResult] = await Promise.all([
+      supabase
+        .from("images")
+        .select("id, user_id, image_url, prompt, tags, created_at, view_count")
+        .eq("is_public", true)
+        .eq("moderation_status", "approved")
+        .not("image_url", "is", null)
+        .order("created_at", { ascending: false })
+        .limit(120),
+      supabase
+        .from("videos")
+        .select("id, user_id, prompt, video_url, thumbnail_url, created_at, view_count")
+        .eq("is_public", true)
+        .neq("moderation_status", "hidden")
+        .not("video_url", "is", null)
+        .order("created_at", { ascending: false })
+        .limit(120)
+    ]);
+
+    if (imagesResult.error) {
+      console.error("RECOMMENDATION IMAGES ERROR:", imagesResult.error);
+      return res.status(500).json({ error: "Could not load recommendations" });
+    }
+
+    if (videosResult.error) {
+      console.error("RECOMMENDATION VIDEOS ERROR:", videosResult.error);
+      return res.status(500).json({ error: "Could not load recommendations" });
+    }
+
+    const images = (imagesResult.data || []).filter(row => !(mediaType.startsWith("image") && Number(row.id) === Number(rawId)));
+    const videos = (videosResult.data || []).filter(row => !(mediaType.startsWith("video") && String(row.id) === rawId));
+
+    const imageEngagement = await getImageEngagement(images.map(row => row.id));
+    const videoEngagement = await getBulkVideoEngagement(videos.map(row => row.id));
+
+    const scoredImages = images.map(row => {
+      const likes = imageEngagement.likesByImage.get(row.id) || 0;
+      const comments = imageEngagement.commentsByImage.get(row.id) || 0;
+      const views = Number(row.view_count || 0);
+
+      const score =
+        (row.user_id === target.user_id ? 100 : 0) +
+        tagSimilarityScore(targetTags, row.tags) +
+        promptSimilarityScore(targetWords, row.prompt) +
+        Math.min(50, views * 0.4) +
+        (likes * 6) +
+        (comments * 10) +
+        recommendationRecencyScore(row.created_at);
+
+      return {
+        type: "image",
+        id: row.id,
+        url: row.image_url,
+        image_url: row.image_url,
+        prompt: row.prompt || "",
+        created_at: row.created_at,
+        view_count: views,
+        like_count: likes,
+        comment_count: comments,
+        score
+      };
+    });
+
+    const scoredVideos = videos.map(row => {
+      const likes = videoEngagement.likesByVideo.get(row.id) || 0;
+      const comments = videoEngagement.commentsByVideo.get(row.id) || 0;
+      const views = Number(row.view_count || 0);
+
+      const score =
+        (row.user_id === target.user_id ? 100 : 0) +
+        promptSimilarityScore(targetWords, row.prompt) +
+        Math.min(50, views * 0.4) +
+        (likes * 6) +
+        (comments * 10) +
+        recommendationRecencyScore(row.created_at);
+
+      return {
+        type: "video",
+        id: row.id,
+        url: row.video_url,
+        video_url: row.video_url,
+        thumbnail_url: row.thumbnail_url || row.video_url,
+        prompt: row.prompt || "",
+        created_at: row.created_at,
+        view_count: views,
+        like_count: likes,
+        comment_count: comments,
+        score
+      };
+    });
+
+    const recommendations = [...scoredImages, ...scoredVideos]
+      .filter(item => item.url)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 8);
+
+    res.json({ recommendations });
+  } catch (err) {
+    console.error("RECOMMENDATIONS SERVER ERROR:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+
+app.get("/api/creator-media/:type/:id", async (req, res) => {
+  try {
+    const mediaType = String(req.params.type || "").toLowerCase();
+    const isVideo = mediaType === "video" || mediaType === "videos";
+    const rawId = String(req.params.id || "").trim();
+
+    if (!["image", "images", "video", "videos"].includes(mediaType) || !rawId) {
+      return res.status(400).json({ error: "Invalid creator media request" });
+    }
+
+    const targetResult = isVideo
+      ? await supabase
+          .from("videos")
+          .select("id, user_id")
+          .eq("id", rawId)
+          .not("video_url", "is", null)
+          .single()
+      : await supabase
+          .from("images")
+          .select("id, user_id")
+          .eq("id", Number(rawId))
+          .single();
+
+    if (targetResult.error || !targetResult.data?.user_id) {
+      return res.status(404).json({ error: "Media not found" });
+    }
+
+    const creatorId = targetResult.data.user_id;
+
+    const [imagesResult, videosResult] = await Promise.all([
+      supabase
+        .from("images")
+        .select("id, user_id, image_url, prompt, tags, created_at, view_count")
+        .eq("user_id", creatorId)
+        .eq("is_public", true)
+        .eq("moderation_status", "approved")
+        .not("image_url", "is", null)
+        .order("created_at", { ascending: false })
+        .limit(60),
+      supabase
+        .from("videos")
+        .select("id, user_id, prompt, video_url, thumbnail_url, created_at, view_count")
+        .eq("user_id", creatorId)
+        .eq("is_public", true)
+        .neq("moderation_status", "hidden")
+        .not("video_url", "is", null)
+        .order("created_at", { ascending: false })
+        .limit(60)
+    ]);
+
+    if (imagesResult.error) {
+      console.error("CREATOR MEDIA IMAGES ERROR:", imagesResult.error);
+      return res.status(500).json({ error: "Could not load creator media" });
+    }
+
+    if (videosResult.error) {
+      console.error("CREATOR MEDIA VIDEOS ERROR:", videosResult.error);
+      return res.status(500).json({ error: "Could not load creator media" });
+    }
+
+    const images = (imagesResult.data || [])
+      .filter(row => !(mediaType.startsWith("image") && Number(row.id) === Number(rawId)));
+
+    const videos = (videosResult.data || [])
+      .filter(row => !(mediaType.startsWith("video") && String(row.id) === rawId));
+
+    const imageEngagement = await getImageEngagement(images.map(row => row.id));
+    const videoEngagement = await getBulkVideoEngagement(videos.map(row => row.id));
+
+    const imageItems = images.map(row => {
+      const likes = imageEngagement.likesByImage.get(row.id) || 0;
+      const comments = imageEngagement.commentsByImage.get(row.id) || 0;
+      const views = Number(row.view_count || 0);
+
+      return {
+        type: "image",
+        id: row.id,
+        url: row.image_url,
+        image_url: row.image_url,
+        prompt: row.prompt || "",
+        created_at: row.created_at,
+        view_count: views,
+        like_count: likes,
+        comment_count: comments,
+        score: (views * 0.4) + (likes * 6) + (comments * 10) + recommendationRecencyScore(row.created_at)
+      };
+    });
+
+    const videoItems = videos.map(row => {
+      const likes = videoEngagement.likesByVideo.get(row.id) || 0;
+      const comments = videoEngagement.commentsByVideo.get(row.id) || 0;
+      const views = Number(row.view_count || 0);
+
+      return {
+        type: "video",
+        id: row.id,
+        url: row.video_url,
+        video_url: row.video_url,
+        thumbnail_url: row.thumbnail_url || row.video_url,
+        prompt: row.prompt || "",
+        created_at: row.created_at,
+        view_count: views,
+        like_count: likes,
+        comment_count: comments,
+        score: (views * 0.4) + (likes * 6) + (comments * 10) + recommendationRecencyScore(row.created_at)
+      };
+    });
+
+    const media = [...imageItems, ...videoItems]
+      .filter(item => item.url)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 8);
+
+    res.json({ media });
+  } catch (err) {
+    console.error("CREATOR MEDIA SERVER ERROR:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+
 // =========================
 // IMAGE VARIATION
 // =========================
@@ -991,6 +2712,11 @@ app.post("/image-variation", async (req, res) => {
     }
 
     const { prompt, image_url } = req.body;
+    const safeImageUrl = String(image_url || "").trim();
+
+    if (safeImageUrl && !isPublicImageUrl(safeImageUrl)) {
+      return res.status(400).json({ error: "Reference image URL must be public" });
+    }
 
     const sourcePrompt =
       prompt ||
@@ -998,21 +2724,34 @@ app.post("/image-variation", async (req, res) => {
 
     const creditCharge = await chargeCredits(user.id, 3, {
       transactionType: "variation",
-      description: "Image variation",
-      metadata: { route: "/image-variation", count: 4 }
+      description: safeImageUrl ? "Kling image-to-image variation" : "Image variation",
+      metadata: {
+        route: "/image-variation",
+        count: 4,
+        provider: IMAGE_PROVIDER,
+        mode: safeImageUrl ? "image_to_image" : "text_to_image"
+      }
     });
 
     if (!creditCharge.ok) {
       return res.status(403).json({ error: "No credits left" });
     }
 
-    const variationPrompt = `
+    const variationPrompt = safeImageUrl
+      ? `
+Create 4 high-quality variations based on the provided reference image.
+Keep the same main subject and visual identity.
+Vary composition, lighting, color palette, background details, and artistic polish.
+Do not create exact duplicates.
+
+User direction:
+${sourcePrompt}
+`
+      : `
 Create 4 high-quality variations of this image concept.
 
 Original prompt/context:
 ${sourcePrompt}
-
-${image_url ? `Reference image URL: ${image_url}` : ""}
 
 Keep the core idea, but vary composition, lighting, color palette, and details.
 Do not create duplicates.
@@ -1020,18 +2759,34 @@ Premium AI art quality.
 `;
 
     try {
-      const data = await generateImages({
-        prompt: variationPrompt,
-        n: 4,
-        size: "1024x1024"
+      const data = safeImageUrl
+        ? await editImageFromUrl({
+            imageUrl: safeImageUrl,
+            prompt: variationPrompt,
+            n: 4,
+            size: "1024x1024",
+            userId: user.id
+          })
+        : await generateImages({
+            prompt: variationPrompt,
+            n: 4,
+            size: "1024x1024",
+            userId: user.id
+          });
+
+      await logEvent(user.id, "image_variation", {
+        count: 4,
+        mode: safeImageUrl ? "image_to_image" : "text_to_image"
       });
 
-      await logEvent(user.id, "image_variation", { count: 4 });
       res.json(data);
     } catch (generationError) {
       await refundCredits(user.id, 3, {
         description: "Refund after failed image variation",
-        metadata: { route: "/image-variation" }
+        metadata: {
+          route: "/image-variation",
+          mode: safeImageUrl ? "image_to_image" : "text_to_image"
+        }
       });
       throw generationError;
     }
@@ -1049,8 +2804,8 @@ Premium AI art quality.
 // =========================
 // GENERATE FROM UPLOADED IMAGE — STAGE 2
 // =========================
-// Stage 2 sends the actual uploaded image pixels to OpenAI's image edit API.
-// This creates closer variations than Stage 1, which only used the image URL as text context.
+// Stage 2 sends the uploaded image reference to the active image provider.
+// This creates closer variations than Stage 1, which only used the image URL as prompt context.
 app.post("/generate-from-image", async (req, res) => {
   try {
     const user = await getUser(req);
@@ -1060,15 +2815,25 @@ app.post("/generate-from-image", async (req, res) => {
     }
 
     const { prompt, image_url } = req.body;
+    const safeImageUrl = String(image_url || "").trim();
 
-    if (!image_url) {
+    if (!safeImageUrl) {
       return res.status(400).json({ error: "Uploaded image URL required" });
+    }
+
+    if (!isPublicImageUrl(safeImageUrl)) {
+      return res.status(400).json({ error: "Uploaded image URL must be public" });
     }
 
     const creditCharge = await chargeCredits(user.id, 3, {
       transactionType: "true_variation",
-      description: "Uploaded image variation",
-      metadata: { route: "/generate-from-image", count: 4 }
+      description: "Kling uploaded image-to-image variation",
+      metadata: {
+        route: "/generate-from-image",
+        count: 4,
+        provider: IMAGE_PROVIDER,
+        mode: "image_to_image"
+      }
     });
 
     if (!creditCharge.ok) {
@@ -1088,18 +2853,25 @@ ${prompt || "Create subtle variations of this image."}
 
     try {
       const data = await editImageFromUrl({
-        imageUrl: image_url,
+        imageUrl: safeImageUrl,
         prompt: variationPrompt,
         n: 4,
-        size: "1024x1024"
+        size: "1024x1024",
+        userId: user.id
       });
 
-      await logEvent(user.id, "true_image_variation", { count: 4 });
+      await logEvent(user.id, "true_image_variation", {
+        count: 4,
+        mode: "image_to_image"
+      });
       res.json(data);
     } catch (generationError) {
       await refundCredits(user.id, 3, {
         description: "Refund after failed uploaded-image variation",
-        metadata: { route: "/generate-from-image" }
+        metadata: {
+          route: "/generate-from-image",
+          mode: "image_to_image"
+        }
       });
       throw generationError;
     }
@@ -1154,11 +2926,26 @@ Keep the same subject and overall concept.
 `;
 
     try {
-      const data = await generateImages({
-        prompt: upscalePrompt,
-        n: 1,
-        size: "1024x1024"
-      });
+      const safeImageUrl = String(image_url || "").trim();
+
+      if (safeImageUrl && !isPublicImageUrl(safeImageUrl)) {
+        throw Object.assign(new Error("Reference image URL must be public"), { status: 400 });
+      }
+
+      const data = safeImageUrl
+        ? await editImageFromUrl({
+            imageUrl: safeImageUrl,
+            prompt: upscalePrompt,
+            n: 1,
+            size: "1024x1024",
+            userId: user.id
+          })
+        : await generateImages({
+            prompt: upscalePrompt,
+            n: 1,
+            size: "1024x1024",
+            userId: user.id
+          });
 
       await logEvent(user.id, "image_upscaled", { count: 1 });
       res.json(data);
@@ -1375,7 +3162,7 @@ async function logCreditTransaction({
 async function getProfile(userId) {
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, credits, username, display_name, bio, avatar_url, is_admin, public_profile, is_suspended, suspended_at, suspended_reason, is_banned, banned_at, banned_reason")
+    .select("id, credits, username, display_name, bio, avatar_url, is_admin, public_profile, is_suspended, suspended_at, suspended_reason, is_banned, banned_at, banned_reason, created_at")
     .eq("id", userId)
     .single();
 
@@ -1575,23 +3362,143 @@ app.get("/api/analytics", async (req, res) => {
 
     const profile = await getProfile(user.id);
 
-    const [images, favorites, publicImages, publicAlbums, recentViews, events] = await Promise.all([
+    const [
+      images,
+      imageRowsResult,
+      videos,
+      videoRowsResult,
+      collections,
+      favorites,
+      publicImages,
+      publicAlbums,
+      followers,
+      following,
+      profileViews,
+      events
+    ] = await Promise.all([
       supabase.from("images").select("id", { count: "exact", head: true }).eq("user_id", user.id),
+      supabase.from("images").select("id, image_url, prompt, created_at, view_count").eq("user_id", user.id).limit(10000),
+      supabase.from("videos").select("id", { count: "exact", head: true }).eq("user_id", user.id),
+      supabase.from("videos").select("id, prompt, video_url, thumbnail_url, duration, generation_type, created_at, view_count").eq("user_id", user.id).limit(10000),
+      supabase.from("collections").select("id", { count: "exact", head: true }).eq("user_id", user.id),
       supabase.from("images").select("id", { count: "exact", head: true }).eq("user_id", user.id).eq("is_favorite", true),
       supabase.from("images").select("id", { count: "exact", head: true }).eq("user_id", user.id).eq("is_public", true),
       supabase.from("collections").select("id", { count: "exact", head: true }).eq("user_id", user.id).eq("is_public", true),
-      supabase.from("images").select("id", { count: "exact", head: true }).eq("user_id", user.id).not("last_viewed_at", "is", null),
-      supabase.from("analytics_events").select("event_type, metadata, created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(20)
+      supabase.from("creator_follows").select("creator_id", { count: "exact", head: true }).eq("creator_id", user.id),
+      supabase.from("creator_follows").select("follower_id", { count: "exact", head: true }).eq("follower_id", user.id),
+      supabase.from("profile_views").select("id", { count: "exact", head: true }).eq("profile_user_id", user.id),
+      supabase.from("analytics_events").select("event_type, metadata, created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(30)
     ]);
+
+    const imageRows = imageRowsResult.data || [];
+    const videoRows = videoRowsResult.data || [];
+    const imageIds = imageRows.map(row => row.id).filter(Boolean);
+    const videoIds = videoRows.map(row => row.id).filter(Boolean);
+
+    const [imageLikesRows, videoLikesRows, imageCommentsRows, videoCommentsRows] = await Promise.all([
+      imageIds.length
+        ? supabase.from("image_likes").select("image_id").in("image_id", imageIds).limit(10000)
+        : Promise.resolve({ data: [] }),
+      videoIds.length
+        ? supabase.from("video_likes").select("video_id").in("video_id", videoIds).limit(10000)
+        : Promise.resolve({ data: [] }),
+      imageIds.length
+        ? supabase.from("image_comments").select("image_id").in("image_id", imageIds).eq("is_hidden", false).limit(10000)
+        : Promise.resolve({ data: [] }),
+      videoIds.length
+        ? supabase.from("video_comments").select("video_id").in("video_id", videoIds).limit(10000)
+        : Promise.resolve({ data: [] })
+    ]);
+
+    function addToMap(map, key) {
+      if (key === null || key === undefined) return;
+      const safeKey = String(key);
+      map.set(safeKey, (map.get(safeKey) || 0) + 1);
+    }
+
+    const imageLikeMap = new Map();
+    const videoLikeMap = new Map();
+    const imageCommentMap = new Map();
+    const videoCommentMap = new Map();
+
+    for (const row of imageLikesRows.data || []) addToMap(imageLikeMap, row.image_id);
+    for (const row of videoLikesRows.data || []) addToMap(videoLikeMap, row.video_id);
+    for (const row of imageCommentsRows.data || []) addToMap(imageCommentMap, row.image_id);
+    for (const row of videoCommentsRows.data || []) addToMap(videoCommentMap, row.video_id);
+
+    const totalImageViews = imageRows.reduce((sum, row) => sum + Number(row.view_count || 0), 0);
+    const totalVideoViews = videoRows.reduce((sum, row) => sum + Number(row.view_count || 0), 0);
+
+    function mediaScore({ views = 0, likes = 0, comments = 0, createdAt = null }) {
+      const ageHours = createdAt ? Math.max(1, (Date.now() - new Date(createdAt).getTime()) / 36e5) : 9999;
+      const recencyBonus = Math.max(0, 24 - Math.min(24, ageHours));
+      return Number(views || 0) + Number(likes || 0) * 3 + Number(comments || 0) * 5 + recencyBonus;
+    }
+
+    function enrichImage(row) {
+      const id = String(row.id);
+      const likes = Number(imageLikeMap.get(id) || 0);
+      const comments = Number(imageCommentMap.get(id) || 0);
+      const views = Number(row.view_count || 0);
+      return {
+        id: row.id,
+        image_url: row.image_url,
+        prompt: row.prompt || "",
+        created_at: row.created_at,
+        view_count: views,
+        like_count: likes,
+        comment_count: comments,
+        score: mediaScore({ views, likes, comments, createdAt: row.created_at })
+      };
+    }
+
+    function enrichVideo(row) {
+      const id = String(row.id);
+      const likes = Number(videoLikeMap.get(id) || 0);
+      const comments = Number(videoCommentMap.get(id) || 0);
+      const views = Number(row.view_count || 0);
+      return {
+        id: row.id,
+        video_url: row.video_url,
+        thumbnail_url: row.thumbnail_url,
+        prompt: row.prompt || "",
+        duration: row.duration,
+        generation_type: row.generation_type,
+        created_at: row.created_at,
+        view_count: views,
+        like_count: likes,
+        comment_count: comments,
+        score: mediaScore({ views, likes, comments, createdAt: row.created_at })
+      };
+    }
+
+    const topImage = imageRows.map(enrichImage).sort((a, b) => b.score - a.score || b.view_count - a.view_count)[0] || null;
+    const topVideo = videoRows.map(enrichVideo).sort((a, b) => b.score - a.score || b.view_count - a.view_count)[0] || null;
+    const memberSince = profile?.created_at || profile?.member_since || null;
 
     res.json({
       summary: {
         total_images: images.count || 0,
+        total_videos: videos.count || 0,
+        total_collections: collections.count || 0,
+        followers: followers.count || 0,
+        following: following.count || 0,
+        profile_views: profileViews.count || 0,
+        total_views: totalImageViews + totalVideoViews,
+        image_views: totalImageViews,
+        video_views: totalVideoViews,
+        likes_received: Number((imageLikesRows.data || []).length || 0) + Number((videoLikesRows.data || []).length || 0),
+        comments_received: Number((imageCommentsRows.data || []).length || 0) + Number((videoCommentsRows.data || []).length || 0),
         favorite_images: favorites.count || 0,
+        credits: profile?.credits || 0,
         public_images: publicImages.count || 0,
         public_albums: publicAlbums.count || 0,
-        recent_views: recentViews.count || 0,
-        credits: profile?.credits || 0
+        video_shares: videos.count || 0,
+        member_since: memberSince
+      },
+      top_media: {
+        image: topImage,
+        video: topVideo
       },
       recent_events: events.data || []
     });
@@ -1600,7 +3507,6 @@ app.get("/api/analytics", async (req, res) => {
     res.status(500).json({ error: "Analytics failed" });
   }
 });
-
 
 app.get("/api/admin/stats", async (req, res) => {
   try {
@@ -1705,6 +3611,39 @@ app.post("/api/admin/moderate", async (req, res) => {
   res.json({ success: true });
 });
 
+app.post("/api/admin/moderate-video", async (req, res) => {
+  try {
+    const admin = await requireAdmin(req, res);
+    if (!admin) return;
+
+    const videoId = String(req.body.videoId || "").trim();
+    const status = ["approved", "pending", "hidden"].includes(req.body.moderation_status)
+      ? req.body.moderation_status
+      : "pending";
+
+    if (!videoId) {
+      return res.status(400).json({ error: "Invalid video" });
+    }
+
+    const { error } = await supabase
+      .from("videos")
+      .update({ moderation_status: status, is_public: Boolean(req.body.is_public) })
+      .eq("id", videoId);
+
+    if (error) {
+      console.error("ADMIN MODERATE VIDEO ERROR:", error);
+      return res.status(500).json({ error: "Video moderation failed" });
+    }
+
+    await logEvent(admin.user.id, "admin_moderated_video", { videoId, status, is_public: Boolean(req.body.is_public) });
+    await writeAdminAuditLog(admin, "video_moderated", "video", videoId, { status, is_public: Boolean(req.body.is_public) });
+    res.json({ success: true });
+  } catch (err) {
+    console.error("ADMIN MODERATE VIDEO SERVER ERROR:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 app.post("/api/admin/credits/adjust", async (req, res) => {
   try {
     const admin = await requireAdmin(req, res);
@@ -1801,6 +3740,57 @@ app.post("/api/images/:imageId/report", async (req, res) => {
 });
 
 
+app.post("/api/videos/:videoId/report", async (req, res) => {
+  try {
+    const user = await getUser(req);
+    if (!user) return res.status(401).json({ error: "Login required to report videos" });
+
+    const videoId = String(req.params.videoId || "").trim();
+    if (!videoId) {
+      return res.status(400).json({ error: "Invalid video" });
+    }
+
+    const reason = String(req.body.reason || "other").trim().slice(0, 80);
+    const details = String(req.body.details || "").trim().slice(0, 1000);
+
+    const { data: video, error: videoError } = await supabase
+      .from("videos")
+      .select("id, user_id, is_public, moderation_status, video_url")
+      .eq("id", videoId)
+      .single();
+
+    if (videoError || !video) {
+      return res.status(404).json({ error: "Video not found" });
+    }
+
+    if (!video.is_public || video.moderation_status === "hidden" || !video.video_url) {
+      return res.status(403).json({ error: "Video is not public" });
+    }
+
+    const { error } = await supabase
+      .from("video_reports")
+      .upsert({
+        video_id: videoId,
+        reporter_id: user.id,
+        reason,
+        details,
+        status: "open"
+      }, { onConflict: "video_id,reporter_id" });
+
+    if (error) {
+      console.error("VIDEO REPORT ERROR:", error);
+      return res.status(500).json({ error: "Could not submit video report" });
+    }
+
+    await logEvent(user.id, "video_reported", { video_id: videoId, reason });
+    res.json({ success: true });
+  } catch (err) {
+    console.error("VIDEO REPORT SERVER ERROR:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+
 
 app.post("/api/creators/:creatorId/report", async (req, res) => {
   try {
@@ -1856,22 +3846,44 @@ app.get("/api/admin/reports", async (req, res) => {
     if (!admin) return;
 
     const status = String(req.query.status || "open");
-    let query = supabase
+
+    let imageQuery = supabase
       .from("image_reports")
       .select("id, image_id, reporter_id, reason, details, status, created_at, resolved_at")
       .order("created_at", { ascending: false })
       .limit(100);
 
-    if (status !== "all") query = query.eq("status", status);
+    let videoQuery = supabase
+      .from("video_reports")
+      .select("id, video_id, reporter_id, reason, details, status, created_at, resolved_at")
+      .order("created_at", { ascending: false })
+      .limit(100);
 
-    const { data: reports, error } = await query;
-    if (error) {
-      console.error("ADMIN REPORTS ERROR:", error);
-      return res.status(500).json({ error: "Could not load reports" });
+    if (status !== "all") {
+      imageQuery = imageQuery.eq("status", status);
+      videoQuery = videoQuery.eq("status", status);
     }
 
-    const imageIds = [...new Set((reports || []).map(r => Number(r.image_id)).filter(Number.isFinite))];
+    const [imageReportsResult, videoReportsResult] = await Promise.all([imageQuery, videoQuery]);
+
+    if (imageReportsResult.error) {
+      console.error("ADMIN IMAGE REPORTS ERROR:", imageReportsResult.error);
+      return res.status(500).json({ error: "Could not load image reports" });
+    }
+
+    if (videoReportsResult.error) {
+      console.error("ADMIN VIDEO REPORTS ERROR:", videoReportsResult.error);
+      return res.status(500).json({ error: "Could not load video reports" });
+    }
+
+    const imageReports = imageReportsResult.data || [];
+    const videoReports = videoReportsResult.data || [];
+
+    const imageIds = [...new Set(imageReports.map(r => Number(r.image_id)).filter(Number.isFinite))];
+    const videoIds = [...new Set(videoReports.map(r => String(r.video_id || "")).filter(Boolean))];
+
     let imageMap = new Map();
+    let videoMap = new Map();
 
     if (imageIds.length) {
       const { data: images, error: imageError } = await supabase
@@ -1886,12 +3898,33 @@ app.get("/api/admin/reports", async (req, res) => {
       }
     }
 
-    res.json({
-      reports: (reports || []).map(report => ({
+    if (videoIds.length) {
+      const { data: videos, error: videoError } = await supabase
+        .from("videos")
+        .select("id, user_id, video_url, thumbnail_url, prompt, is_public, moderation_status, created_at")
+        .in("id", videoIds);
+
+      if (videoError) {
+        console.warn("ADMIN REPORT VIDEOS WARNING:", videoError.message || videoError);
+      } else {
+        videoMap = new Map((videos || []).map(video => [String(video.id), video]));
+      }
+    }
+
+    const reports = [
+      ...imageReports.map(report => ({
         ...report,
+        report_type: "image",
         image: imageMap.get(Number(report.image_id)) || null
+      })),
+      ...videoReports.map(report => ({
+        ...report,
+        report_type: "video",
+        video: videoMap.get(String(report.video_id)) || null
       }))
-    });
+    ].sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+
+    res.json({ reports });
   } catch (err) {
     console.error("ADMIN REPORTS SERVER ERROR:", err);
     res.status(500).json({ error: "Server error" });
@@ -1904,19 +3937,22 @@ app.post("/api/admin/reports/:reportId/resolve", async (req, res) => {
     if (!admin) return;
 
     const reportId = Number(req.params.reportId);
+    const reportType = req.body.type === "video" ? "video" : "image";
+    const table = reportType === "video" ? "video_reports" : "image_reports";
+    const targetColumn = reportType === "video" ? "video_id" : "image_id";
     const status = ["open", "reviewed", "dismissed", "action_taken"].includes(req.body.status)
       ? req.body.status
       : "reviewed";
 
     const { data, error } = await supabase
-      .from("image_reports")
+      .from(table)
       .update({
         status,
         resolved_by: admin.user.id,
         resolved_at: new Date().toISOString()
       })
       .eq("id", reportId)
-      .select("id, image_id, status")
+      .select(`id, ${targetColumn}, status`)
       .single();
 
     if (error) {
@@ -1924,7 +3960,14 @@ app.post("/api/admin/reports/:reportId/resolve", async (req, res) => {
       return res.status(500).json({ error: "Could not update report" });
     }
 
-    await writeAdminAuditLog(admin, "report_resolved", "image_report", reportId, { status, image_id: data?.image_id });
+    await writeAdminAuditLog(
+      admin,
+      "report_resolved",
+      `${reportType}_report`,
+      reportId,
+      { status, [targetColumn]: data?.[targetColumn] }
+    );
+
     res.json({ success: true, report: data });
   } catch (err) {
     console.error("ADMIN REPORT RESOLVE SERVER ERROR:", err);
@@ -2454,26 +4497,289 @@ app.get("/api/feed/following", async (req, res) => {
     }
 
     const creatorIds = (follows || []).map(row => row.creator_id);
-    if (!creatorIds.length) return res.json({ images: [] });
+    if (!creatorIds.length) return res.json({ images: [], videos: [], items: [] });
 
-    const { data: images, error: imagesError } = await supabase
-      .from("images")
-      .select("id, user_id, image_url, prompt, tags, created_at, collection_id, view_count")
-      .in("user_id", creatorIds)
-      .eq("is_public", true)
-      .eq("moderation_status", "approved")
-      .order("created_at", { ascending: false })
-      .limit(80);
+    const [imagesResult, videosResult] = await Promise.all([
+      supabase
+        .from("images")
+        .select("id, user_id, image_url, prompt, tags, created_at, collection_id, view_count")
+        .in("user_id", creatorIds)
+        .eq("is_public", true)
+        .eq("moderation_status", "approved")
+        .order("created_at", { ascending: false })
+        .limit(80),
+      supabase
+        .from("videos")
+        .select("id, user_id, prompt, video_url, thumbnail_url, duration, status, generation_type, created_at, is_public")
+        .in("user_id", creatorIds)
+        .eq("is_public", true)
+        .not("video_url", "is", null)
+        .order("created_at", { ascending: false })
+        .limit(80)
+    ]);
 
-    if (imagesError) {
-      console.error("FOLLOWING FEED IMAGES ERROR:", imagesError);
+    if (imagesResult.error) {
+      console.error("FOLLOWING FEED IMAGES ERROR:", imagesResult.error);
       return res.status(500).json({ error: "Could not load following feed" });
     }
 
-    const decorated = await decorateImagesWithEngagement(images || []);
-    res.json({ images: decorated });
+    if (videosResult.error) {
+      console.error("FOLLOWING FEED VIDEOS ERROR:", videosResult.error);
+      return res.status(500).json({ error: "Could not load following feed" });
+    }
+
+    const decoratedImages = await decorateImagesWithEngagement(imagesResult.data || []);
+
+    const decoratedVideos = await Promise.all((videosResult.data || []).map(async video => {
+      const engagement = await getVideoEngagement(video.id, user.id);
+      return {
+        ...video,
+        like_count: engagement.likes,
+        comment_count: engagement.comments,
+        liked_by_me: engagement.liked
+      };
+    }));
+
+    const items = [
+      ...decoratedImages.map(image => ({ type: "image", created_at: image.created_at, image })),
+      ...decoratedVideos.map(video => ({ type: "video", created_at: video.created_at, video }))
+    ]
+      .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0))
+      .slice(0, 100);
+
+    res.json({
+      images: decoratedImages,
+      videos: decoratedVideos,
+      items
+    });
   } catch (err) {
     console.error("FOLLOWING FEED SERVER ERROR:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+function calculateTrendingScore({ views = 0, likes = 0, comments = 0, createdAt = null, days = 7 } = {}) {
+  const safeViews = Number(views || 0);
+  const safeLikes = Number(likes || 0);
+  const safeComments = Number(comments || 0);
+  const safeDays = Math.max(Number(days || 7), 1);
+
+  let recencyBonus = 0;
+  const createdTime = createdAt ? new Date(createdAt).getTime() : 0;
+
+  if (createdTime && !Number.isNaN(createdTime)) {
+    const ageHours = Math.max((Date.now() - createdTime) / (1000 * 60 * 60), 0);
+    const windowHours = safeDays * 24;
+    recencyBonus = Math.max(0, Math.round(20 * (1 - Math.min(ageHours, windowHours) / windowHours)));
+  }
+
+  return safeViews + safeLikes * 3 + safeComments * 5 + recencyBonus;
+}
+
+
+app.get("/api/creator-discovery", async (req, res) => {
+  try {
+    const viewer = await getOptionalUser(req);
+
+    const { data: profiles, error: profilesError } = await supabase
+      .from("profiles")
+      .select("id, username, display_name, bio, avatar_url, public_profile, is_banned")
+      .eq("public_profile", true)
+      .eq("is_banned", false)
+      .not("username", "is", null)
+      .limit(200);
+
+    if (profilesError) {
+      console.error("CREATOR DISCOVERY PROFILE ERROR:", profilesError);
+      return res.status(500).json({ error: "Could not load creator discovery" });
+    }
+
+    const publicProfiles = profiles || [];
+    const creatorIds = publicProfiles.map(profile => profile.id);
+
+    if (!creatorIds.length) {
+      return res.json({ creators: [] });
+    }
+
+    const [followersResult, imagesResult, videosResult, viewerFollowsResult] = await Promise.all([
+      supabase
+        .from("creator_follows")
+        .select("follower_id, creator_id")
+        .in("creator_id", creatorIds)
+        .limit(10000),
+      supabase
+        .from("images")
+        .select("id, user_id, view_count")
+        .in("user_id", creatorIds)
+        .eq("is_public", true)
+        .eq("moderation_status", "approved")
+        .limit(10000),
+      supabase
+        .from("videos")
+        .select("id, user_id, view_count")
+        .in("user_id", creatorIds)
+        .eq("is_public", true)
+        .neq("moderation_status", "hidden")
+        .not("video_url", "is", null)
+        .limit(10000),
+      viewer?.id
+        ? supabase
+            .from("creator_follows")
+            .select("creator_id")
+            .eq("follower_id", viewer.id)
+            .in("creator_id", creatorIds)
+            .limit(10000)
+        : Promise.resolve({ data: [], error: null })
+    ]);
+
+    if (followersResult.error) {
+      console.error("CREATOR DISCOVERY FOLLOWERS ERROR:", followersResult.error);
+      return res.status(500).json({ error: "Could not load creator discovery" });
+    }
+
+    if (imagesResult.error) {
+      console.error("CREATOR DISCOVERY IMAGES ERROR:", imagesResult.error);
+      return res.status(500).json({ error: "Could not load creator discovery" });
+    }
+
+    if (videosResult.error) {
+      console.error("CREATOR DISCOVERY VIDEOS ERROR:", videosResult.error);
+      return res.status(500).json({ error: "Could not load creator discovery" });
+    }
+
+    if (viewerFollowsResult.error) {
+      console.error("CREATOR DISCOVERY VIEWER FOLLOW ERROR:", viewerFollowsResult.error);
+    }
+
+    const followerCounts = new Map();
+    for (const row of followersResult.data || []) {
+      followerCounts.set(row.creator_id, (followerCounts.get(row.creator_id) || 0) + 1);
+    }
+
+    const publicImageCounts = new Map();
+    const imageOwner = new Map();
+    for (const image of imagesResult.data || []) {
+      publicImageCounts.set(image.user_id, (publicImageCounts.get(image.user_id) || 0) + 1);
+      imageOwner.set(Number(image.id), image.user_id);
+    }
+
+    const publicVideoCounts = new Map();
+    const videoOwner = new Map();
+    const creatorViewCounts = new Map();
+
+    for (const image of imagesResult.data || []) {
+      creatorViewCounts.set(image.user_id, (creatorViewCounts.get(image.user_id) || 0) + Number(image.view_count || 0));
+    }
+
+    for (const video of videosResult.data || []) {
+      publicVideoCounts.set(video.user_id, (publicVideoCounts.get(video.user_id) || 0) + 1);
+      videoOwner.set(String(video.id), video.user_id);
+      creatorViewCounts.set(video.user_id, (creatorViewCounts.get(video.user_id) || 0) + Number(video.view_count || 0));
+    }
+
+    const imageIds = [...imageOwner.keys()];
+    const videoIds = [...videoOwner.keys()];
+    let likeCounts = new Map();
+
+    if (imageIds.length) {
+      const { data: likes, error: likesError } = await supabase
+        .from("image_likes")
+        .select("image_id")
+        .in("image_id", imageIds)
+        .limit(10000);
+
+      if (likesError) {
+        console.warn("CREATOR DISCOVERY LIKES WARNING:", likesError.message || likesError);
+      } else {
+        for (const like of likes || []) {
+          const ownerId = imageOwner.get(Number(like.image_id));
+          if (ownerId) {
+            likeCounts.set(ownerId, (likeCounts.get(ownerId) || 0) + 1);
+          }
+        }
+      }
+    }
+
+    if (videoIds.length) {
+      const { data: videoLikes, error: videoLikesError } = await supabase
+        .from("video_likes")
+        .select("video_id")
+        .in("video_id", videoIds)
+        .limit(10000);
+
+      if (videoLikesError) {
+        console.warn("CREATOR DISCOVERY VIDEO LIKES WARNING:", videoLikesError.message || videoLikesError);
+      } else {
+        for (const like of videoLikes || []) {
+          const ownerId = videoOwner.get(String(like.video_id));
+          if (ownerId) {
+            likeCounts.set(ownerId, (likeCounts.get(ownerId) || 0) + 1);
+          }
+        }
+      }
+    }
+
+    const viewerFollowing = new Set((viewerFollowsResult.data || []).map(row => row.creator_id));
+
+    const creators = publicProfiles
+      .map(profile => {
+        const followers = Number(followerCounts.get(profile.id) || 0);
+        const publicImages = Number(publicImageCounts.get(profile.id) || 0);
+        const publicVideos = Number(publicVideoCounts.get(profile.id) || 0);
+        const likesReceived = Number(likeCounts.get(profile.id) || 0);
+        const viewsReceived = Number(creatorViewCounts.get(profile.id) || 0);
+        const score = followers * 5 + likesReceived * 3 + viewsReceived + publicImages + publicVideos * 2;
+
+        return {
+          id: profile.id,
+          username: profile.username,
+          display_name: profile.display_name,
+          bio: profile.bio,
+          avatar_url: profile.avatar_url,
+          stats: {
+            followers,
+            public_images: publicImages,
+            public_videos: publicVideos,
+            likes_received: likesReceived,
+            views_received: viewsReceived,
+            trending_score: score
+          },
+          viewer: {
+            is_owner: viewer?.id === profile.id,
+            following: viewerFollowing.has(profile.id)
+          }
+        };
+      })
+      .filter(creator => creator.username)
+      .sort((a, b) =>
+        b.stats.trending_score - a.stats.trending_score ||
+        b.stats.followers - a.stats.followers ||
+        b.stats.likes_received - a.stats.likes_received ||
+        b.stats.views_received - a.stats.views_received ||
+        b.stats.public_videos - a.stats.public_videos ||
+        b.stats.public_images - a.stats.public_images
+      )
+      .slice(0, 50);
+
+    
+    const featured = creators.slice(0, 8);
+    const trending = creators.slice(0, 24);
+    const newCreators = [...creators]
+      .sort((a, b) =>
+        (Number(b.stats.public_images || 0) + Number(b.stats.public_videos || 0)) -
+        (Number(a.stats.public_images || 0) + Number(a.stats.public_videos || 0)) ||
+        Number(b.stats.views_received || 0) - Number(a.stats.views_received || 0)
+      )
+      .slice(0, 8);
+
+    res.json({
+      featured,
+      trending,
+      new_creators: newCreators,
+      creators
+    });
+  } catch (err) {
+    console.error("CREATOR DISCOVERY SERVER ERROR:", err);
     res.status(500).json({ error: "Server error" });
   }
 });
@@ -2503,7 +4809,7 @@ app.get("/api/trending-creators", async (req, res) => {
       return res.json({ creators: [] });
     }
 
-    const [followersResult, imagesResult, viewerFollowsResult] = await Promise.all([
+    const [followersResult, imagesResult, videosResult, viewerFollowsResult] = await Promise.all([
       supabase
         .from("creator_follows")
         .select("follower_id, creator_id")
@@ -2511,10 +4817,18 @@ app.get("/api/trending-creators", async (req, res) => {
         .limit(10000),
       supabase
         .from("images")
-        .select("id, user_id")
+        .select("id, user_id, view_count")
         .in("user_id", creatorIds)
         .eq("is_public", true)
         .eq("moderation_status", "approved")
+        .limit(10000),
+      supabase
+        .from("videos")
+        .select("id, user_id, view_count")
+        .in("user_id", creatorIds)
+        .eq("is_public", true)
+        .neq("moderation_status", "hidden")
+        .not("video_url", "is", null)
         .limit(10000),
       viewer?.id
         ? supabase
@@ -2536,6 +4850,11 @@ app.get("/api/trending-creators", async (req, res) => {
       return res.status(500).json({ error: "Could not load trending creators" });
     }
 
+    if (videosResult.error) {
+      console.error("TRENDING CREATORS VIDEOS ERROR:", videosResult.error);
+      return res.status(500).json({ error: "Could not load trending creators" });
+    }
+
     if (viewerFollowsResult.error) {
       console.error("TRENDING CREATORS VIEWER FOLLOW ERROR:", viewerFollowsResult.error);
     }
@@ -2552,7 +4871,22 @@ app.get("/api/trending-creators", async (req, res) => {
       imageOwner.set(Number(image.id), image.user_id);
     }
 
+    const publicVideoCounts = new Map();
+    const videoOwner = new Map();
+    const creatorViewCounts = new Map();
+
+    for (const image of imagesResult.data || []) {
+      creatorViewCounts.set(image.user_id, (creatorViewCounts.get(image.user_id) || 0) + Number(image.view_count || 0));
+    }
+
+    for (const video of videosResult.data || []) {
+      publicVideoCounts.set(video.user_id, (publicVideoCounts.get(video.user_id) || 0) + 1);
+      videoOwner.set(String(video.id), video.user_id);
+      creatorViewCounts.set(video.user_id, (creatorViewCounts.get(video.user_id) || 0) + Number(video.view_count || 0));
+    }
+
     const imageIds = [...imageOwner.keys()];
+    const videoIds = [...videoOwner.keys()];
     let likeCounts = new Map();
 
     if (imageIds.length) {
@@ -2574,14 +4908,35 @@ app.get("/api/trending-creators", async (req, res) => {
       }
     }
 
+    if (videoIds.length) {
+      const { data: videoLikes, error: videoLikesError } = await supabase
+        .from("video_likes")
+        .select("video_id")
+        .in("video_id", videoIds)
+        .limit(10000);
+
+      if (videoLikesError) {
+        console.warn("TRENDING CREATORS VIDEO LIKES WARNING:", videoLikesError.message || videoLikesError);
+      } else {
+        for (const like of videoLikes || []) {
+          const ownerId = videoOwner.get(String(like.video_id));
+          if (ownerId) {
+            likeCounts.set(ownerId, (likeCounts.get(ownerId) || 0) + 1);
+          }
+        }
+      }
+    }
+
     const viewerFollowing = new Set((viewerFollowsResult.data || []).map(row => row.creator_id));
 
     const creators = publicProfiles
       .map(profile => {
         const followers = Number(followerCounts.get(profile.id) || 0);
         const publicImages = Number(publicImageCounts.get(profile.id) || 0);
+        const publicVideos = Number(publicVideoCounts.get(profile.id) || 0);
         const likesReceived = Number(likeCounts.get(profile.id) || 0);
-        const score = followers * 5 + likesReceived * 2 + publicImages;
+        const viewsReceived = Number(creatorViewCounts.get(profile.id) || 0);
+        const score = followers * 5 + likesReceived * 3 + viewsReceived + publicImages + publicVideos * 2;
 
         return {
           id: profile.id,
@@ -2592,7 +4947,9 @@ app.get("/api/trending-creators", async (req, res) => {
           stats: {
             followers,
             public_images: publicImages,
+            public_videos: publicVideos,
             likes_received: likesReceived,
+            views_received: viewsReceived,
             trending_score: score
           },
           viewer: {
@@ -2606,6 +4963,8 @@ app.get("/api/trending-creators", async (req, res) => {
         b.stats.trending_score - a.stats.trending_score ||
         b.stats.followers - a.stats.followers ||
         b.stats.likes_received - a.stats.likes_received ||
+        b.stats.views_received - a.stats.views_received ||
+        b.stats.public_videos - a.stats.public_videos ||
         b.stats.public_images - a.stats.public_images
       )
       .slice(0, 50);
@@ -2617,23 +4976,112 @@ app.get("/api/trending-creators", async (req, res) => {
   }
 });
 
+
+app.get("/api/trending-videos", async (req, res) => {
+  try {
+    const viewer = await getOptionalUser(req);
+    const requestedDays = Math.min(Math.max(Number(req.query.days || 30), 1), 365);
+
+    async function fetchVideos({ since = null } = {}) {
+      let query = supabase
+        .from("videos")
+        .select("id, user_id, prompt, video_url, thumbnail_url, duration, status, generation_type, created_at, is_public, moderation_status, view_count")
+        .eq("is_public", true)
+        .neq("moderation_status", "hidden")
+        .not("video_url", "is", null)
+        .order("created_at", { ascending: false })
+        .limit(250);
+
+      if (since) query = query.gte("created_at", since);
+      return query;
+    }
+
+    const since = new Date(Date.now() - requestedDays * 24 * 60 * 60 * 1000).toISOString();
+    let { data: videos, error } = await fetchVideos({ since });
+
+    if (error) {
+      console.error("TRENDING VIDEOS ERROR:", error);
+      return res.status(500).json({ error: "Could not load trending videos" });
+    }
+
+    // Fallback: if nothing exists in the recent window, show all-time public videos.
+    // This avoids an empty Trending page on smaller/newer deployments.
+    if (!videos?.length) {
+      const fallback = await fetchVideos();
+      videos = fallback.data || [];
+      error = fallback.error;
+
+      if (error) {
+        console.error("TRENDING VIDEOS FALLBACK ERROR:", error);
+        return res.status(500).json({ error: "Could not load trending videos" });
+      }
+    }
+
+    const decorated = await Promise.all((videos || []).map(async video => {
+      const engagement = await getVideoEngagement(video.id, viewer?.id || null);
+      return {
+        ...video,
+        like_count: engagement.likes,
+        comment_count: engagement.comments,
+        liked_by_me: engagement.liked,
+        view_count: Number(video.view_count || 0),
+        trending_score: calculateTrendingScore({
+          views: video.view_count,
+          likes: engagement.likes,
+          comments: engagement.comments,
+          createdAt: video.created_at,
+          days: requestedDays
+        })
+      };
+    }));
+
+    const ranked = decorated
+      .sort((a, b) => b.trending_score - a.trending_score || new Date(b.created_at) - new Date(a.created_at))
+      .slice(0, 80);
+
+    res.json({ videos: ranked });
+  } catch (err) {
+    console.error("TRENDING VIDEOS SERVER ERROR:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 app.get("/api/trending-images", async (req, res) => {
   try {
-    const days = Math.min(Math.max(Number(req.query.days || 7), 1), 30);
-    const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+    const requestedDays = Math.min(Math.max(Number(req.query.days || 30), 1), 365);
 
-    const { data: images, error } = await supabase
-      .from("images")
-      .select("id, user_id, image_url, prompt, tags, created_at, collection_id, view_count")
-      .eq("is_public", true)
-      .eq("moderation_status", "approved")
-      .gte("created_at", since)
-      .order("created_at", { ascending: false })
-      .limit(200);
+    async function fetchImages({ since = null } = {}) {
+      let query = supabase
+        .from("images")
+        .select("id, user_id, image_url, prompt, tags, created_at, collection_id, view_count")
+        .eq("is_public", true)
+        .eq("moderation_status", "approved")
+        .not("image_url", "is", null)
+        .order("created_at", { ascending: false })
+        .limit(250);
+
+      if (since) query = query.gte("created_at", since);
+      return query;
+    }
+
+    const since = new Date(Date.now() - requestedDays * 24 * 60 * 60 * 1000).toISOString();
+    let { data: images, error } = await fetchImages({ since });
 
     if (error) {
       console.error("TRENDING IMAGES ERROR:", error);
       return res.status(500).json({ error: "Could not load trending images" });
+    }
+
+    // Fallback: if the recent window is empty, show all-time public images.
+    if (!images?.length) {
+      const fallback = await fetchImages();
+      images = fallback.data || [];
+      error = fallback.error;
+
+      if (error) {
+        console.error("TRENDING IMAGES FALLBACK ERROR:", error);
+        return res.status(500).json({ error: "Could not load trending images" });
+      }
     }
 
     const decorated = await decorateImagesWithEngagement(images || []);
@@ -2641,9 +5089,13 @@ app.get("/api/trending-images", async (req, res) => {
       .map(img => ({
         ...img,
         trending_score:
-          Number(img.like_count || 0) * 3 +
-          Number(img.comment_count || 0) * 5 +
-          Number(img.view_count || 0)
+          calculateTrendingScore({
+            views: img.view_count,
+            likes: img.like_count,
+            comments: img.comment_count,
+            createdAt: img.created_at,
+            days: requestedDays
+          })
       }))
       .sort((a, b) => b.trending_score - a.trending_score || new Date(b.created_at) - new Date(a.created_at))
       .slice(0, 80);
@@ -2684,7 +5136,7 @@ app.get("/api/public-profile/:username", async (req, res) => {
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("id, username, display_name, bio, avatar_url, public_profile, is_banned")
+    .select("id, username, display_name, bio, avatar_url, public_profile, is_banned, created_at, accepted_terms_at")
     .eq("username", username)
     .eq("public_profile", true)
     .eq("is_banned", false)
@@ -2694,7 +5146,9 @@ app.get("/api/public-profile/:username", async (req, res) => {
     return res.status(404).json({ error: "Profile not found" });
   }
 
-  const [albumsResult, imagesResult, followersResult, followingResult] = await Promise.all([
+  await recordProfileView(profile.id, viewer?.id || null);
+
+  const [albumsResult, imagesResult, videosResult, followersResult, followingResult, commentsReceived, profileViews] = await Promise.all([
     supabase.from("collections")
       .select("id, name, public_slug, cover_image_url, created_at")
       .eq("user_id", profile.id)
@@ -2708,12 +5162,49 @@ app.get("/api/public-profile/:username", async (req, res) => {
       .eq("moderation_status", "approved")
       .order("created_at", { ascending: false })
       .limit(80),
+    supabase.from("videos")
+      .select("id, prompt, video_url, thumbnail_url, duration, status, credits_used, generation_type, source_image_url, created_at, view_count")
+      .eq("user_id", profile.id)
+      .eq("is_public", true)
+      .not("video_url", "is", null)
+      .order("created_at", { ascending: false })
+      .limit(80),
     supabase.from("creator_follows").select("creator_id", { count: "exact", head: true }).eq("creator_id", profile.id),
-    supabase.from("creator_follows").select("follower_id", { count: "exact", head: true }).eq("follower_id", profile.id)
+    supabase.from("creator_follows").select("follower_id", { count: "exact", head: true }).eq("follower_id", profile.id),
+    countCreatorCommentsReceived(profile.id),
+    countProfileViews(profile.id)
   ]);
 
   const images = await decorateImagesWithEngagement(imagesResult.data || []);
-  const totalLikesReceived = images.reduce((sum, img) => sum + Number(img.like_count || 0), 0);
+  const profileDateCandidates = [
+    profile.created_at,
+    profile.accepted_terms_at,
+    ...((albumsResult.data || []).map(row => row.created_at)),
+    ...((imagesResult.data || []).map(row => row.created_at)),
+    ...((videosResult.data || []).map(row => row.created_at))
+  ]
+    .filter(Boolean)
+    .map(value => new Date(value))
+    .filter(date => !Number.isNaN(date.getTime()))
+    .sort((a, b) => a - b);
+
+  const memberSince = profileDateCandidates.length
+    ? profileDateCandidates[0].toISOString()
+    : null;
+
+  const videos = await Promise.all((videosResult.data || []).map(async video => {
+    const engagement = await getVideoEngagement(video.id, viewer?.id || null);
+    return {
+      ...video,
+      like_count: engagement.likes,
+      comment_count: engagement.comments,
+      liked_by_me: engagement.liked,
+      view_count: Number(video.view_count || 0)
+    };
+  }));
+  const imageLikesReceived = images.reduce((sum, img) => sum + Number(img.like_count || 0), 0);
+  const videoLikesReceived = videos.reduce((sum, video) => sum + Number(video.like_count || 0), 0);
+  const totalLikesReceived = imageLikesReceived + videoLikesReceived;
   let following = false;
 
   if (viewer?.id && viewer.id !== profile.id) {
@@ -2730,11 +5221,16 @@ app.get("/api/public-profile/:username", async (req, res) => {
     profile,
     albums: albumsResult.data || [],
     images,
+    videos,
     stats: {
       followers: followersResult.count || 0,
       following: followingResult.count || 0,
       total_images: images.length,
-      total_likes: totalLikesReceived
+      total_videos: videos.length,
+      total_likes: totalLikesReceived,
+      comments_received: Number(commentsReceived || 0),
+      profile_views: Number(profileViews || 0),
+      member_since: memberSince
     },
     viewer: {
       is_owner: viewer?.id === profile.id,
@@ -3383,6 +5879,388 @@ app.post("/api/images/:imageId/comments", async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
+
+
+
+// =========================
+// VIDEO SOCIAL ACTIONS
+// =========================
+async function getAccessibleVideo(videoId, userId) {
+  const { data: video, error } = await supabase
+    .from("videos")
+    .select("id, user_id, video_url, prompt, is_public, moderation_status, status")
+    .eq("id", videoId)
+    .single();
+
+  if (error || !video) return null;
+
+  const isOwner = String(video.user_id) === String(userId);
+  const isPublic = Boolean(video.is_public) && video.moderation_status !== "hidden";
+
+  if (!isOwner && !isPublic) return null;
+
+  return video;
+}
+
+
+app.post("/api/videos/:videoId/share", async (req, res) => {
+  try {
+    const user = await getUser(req);
+    if (!user) return res.status(401).json({ error: "Unauthorized" });
+
+    const videoId = String(req.params.videoId || "").trim();
+
+    const { data: video, error: videoError } = await supabase
+      .from("videos")
+      .select("id, user_id, video_url, status, moderation_status")
+      .eq("id", videoId)
+      .eq("user_id", user.id)
+      .single();
+
+    if (videoError || !video) {
+      return res.status(404).json({ error: "Video not found" });
+    }
+
+    if (!video.video_url || video.status !== "completed") {
+      return res.status(400).json({ error: "Only completed videos can be shared" });
+    }
+
+    if (video.moderation_status === "hidden") {
+      return res.status(403).json({ error: "This video cannot be shared" });
+    }
+
+    const { data: updatedVideo, error: updateError } = await supabase
+      .from("videos")
+      .update({
+        is_public: true,
+        moderation_status: video.moderation_status || "approved"
+      })
+      .eq("id", videoId)
+      .eq("user_id", user.id)
+      .select("id, is_public, moderation_status")
+      .single();
+
+    if (updateError) {
+      console.error("VIDEO SHARE ERROR:", updateError);
+      return res.status(500).json({ error: "Could not share video" });
+    }
+
+    const baseUrl = String(process.env.APP_URL || "https://qeecko.com").replace(/\/$/, "");
+    const shareUrl = `${baseUrl}/video/${encodeURIComponent(videoId)}`;
+
+    await logEvent(user.id, "video_shared", { video_id: videoId, share_url: shareUrl });
+
+    res.json({
+      success: true,
+      video: updatedVideo,
+      share_url: shareUrl
+    });
+
+  } catch (err) {
+    console.error("VIDEO SHARE SERVER ERROR:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+app.get("/api/public/videos/:videoId", async (req, res) => {
+  try {
+    const videoId = String(req.params.videoId || "").trim();
+
+    const { data: video, error } = await supabase
+      .from("videos")
+      .select("id, user_id, prompt, video_url, thumbnail_url, duration, status, is_public, moderation_status, generation_type, source_image_url, created_at")
+      .eq("id", videoId)
+      .eq("is_public", true)
+      .neq("moderation_status", "hidden")
+      .single();
+
+    if (error || !video || !video.video_url || video.status !== "completed") {
+      return res.status(404).json({ error: "Video not found" });
+    }
+
+    const [{ data: creator }, engagement] = await Promise.all([
+      supabase
+        .from("profiles")
+        .select("id, username, display_name, avatar_url, public_profile, is_banned")
+        .eq("id", video.user_id)
+        .maybeSingle(),
+      getVideoEngagement(videoId, null)
+    ]);
+
+    if (creator?.is_banned) {
+      return res.status(404).json({ error: "Video not found" });
+    }
+
+    res.json({
+      video: {
+        ...video,
+        like_count: engagement.likes,
+        comment_count: engagement.comments,
+        liked_by_me: false,
+        creator: creator
+          ? {
+              id: creator.id,
+              username: creator.username,
+              display_name: creator.display_name,
+              avatar_url: creator.avatar_url,
+              public_profile: creator.public_profile
+            }
+          : null
+      }
+    });
+
+  } catch (err) {
+    console.error("PUBLIC VIDEO SERVER ERROR:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+app.post("/api/videos/:videoId/like", async (req, res) => {
+  try {
+    const user = await getUser(req);
+    if (!user) return res.status(401).json({ error: "Login required to like videos" });
+
+    const videoId = String(req.params.videoId || "").trim();
+    const video = await getAccessibleVideo(videoId, user.id);
+
+    if (!video) return res.status(404).json({ error: "Video not found" });
+
+    const { data: existing } = await supabase
+      .from("video_likes")
+      .select("id")
+      .eq("video_id", videoId)
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    let liked = false;
+
+    if (existing) {
+      const { error } = await supabase
+        .from("video_likes")
+        .delete()
+        .eq("id", existing.id);
+
+      if (error) {
+        console.error("VIDEO UNLIKE ERROR:", error);
+        return res.status(500).json({ error: "Could not unlike video" });
+      }
+    } else {
+      const { error } = await supabase
+        .from("video_likes")
+        .insert({
+          video_id: videoId,
+          user_id: user.id
+        });
+
+      if (error) {
+        console.error("VIDEO LIKE ERROR:", error);
+        return res.status(500).json({ error: "Could not like video" });
+      }
+
+      liked = true;
+      await logEvent(user.id, "video_liked", { video_id: videoId });
+
+      const { actorName, actorUsername } = await getActorIdentity(user);
+
+      await createNotification({
+        userId: video.user_id,
+        actorId: user.id,
+        type: "video_liked",
+        data: {
+          video_id: videoId,
+          actor_name: actorName,
+          actor_username: actorUsername
+        }
+      });
+    }
+
+    const engagement = await getVideoEngagement(videoId, user.id);
+
+    res.json({
+      liked,
+      likes: engagement.likes,
+      comments: engagement.comments
+    });
+
+  } catch (err) {
+    console.error("VIDEO LIKE SERVER ERROR:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+app.get("/api/videos/:videoId/comments", async (req, res) => {
+  try {
+    const user = await getUser(req);
+    if (!user) return res.status(401).json({ error: "Login required to view comments" });
+
+    const videoId = String(req.params.videoId || "").trim();
+    const video = await getAccessibleVideo(videoId, user.id);
+
+    if (!video) return res.status(404).json({ error: "Video not found" });
+
+    const [{ data: comments, error }, engagement] = await Promise.all([
+      supabase
+        .from("video_comments")
+        .select("id, video_id, user_id, comment, created_at")
+        .eq("video_id", videoId)
+        .order("created_at", { ascending: true })
+        .limit(100),
+      getVideoEngagement(videoId, user.id)
+    ]);
+
+    if (error) {
+      console.error("VIDEO COMMENTS LOAD ERROR:", error);
+      return res.status(500).json({ error: "Could not load comments" });
+    }
+
+    const userIds = [...new Set((comments || []).map(row => row.user_id).filter(Boolean))];
+    let profileMap = new Map();
+
+    if (userIds.length) {
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, username, display_name")
+        .in("id", userIds);
+
+      profileMap = new Map((profiles || []).map(profile => [profile.id, profile]));
+    }
+
+    res.json({
+      comments: (comments || []).map(row => {
+        const profile = profileMap.get(row.user_id) || {};
+        return {
+          ...row,
+          display_name: profile.display_name || profile.username || "Creator"
+        };
+      }),
+      likes: engagement.likes,
+      comment_count: engagement.comments,
+      liked: engagement.liked
+    });
+
+  } catch (err) {
+    console.error("VIDEO COMMENTS SERVER ERROR:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+app.post("/api/videos/:videoId/comments", async (req, res) => {
+  try {
+    const user = await getUser(req);
+    if (!user) return res.status(401).json({ error: "Login required to comment" });
+
+    const videoId = String(req.params.videoId || "").trim();
+    const comment = String(req.body.comment || "").trim().slice(0, 500);
+
+    if (!comment) return res.status(400).json({ error: "Comment required" });
+
+    const video = await getAccessibleVideo(videoId, user.id);
+
+    if (!video) return res.status(404).json({ error: "Video not found" });
+
+    const { data, error } = await supabase
+      .from("video_comments")
+      .insert({
+        video_id: videoId,
+        user_id: user.id,
+        comment
+      })
+      .select("id, video_id, user_id, comment, created_at")
+      .single();
+
+    if (error) {
+      console.error("VIDEO COMMENT INSERT ERROR:", error);
+      return res.status(500).json({ error: "Could not save comment" });
+    }
+
+    await logEvent(user.id, "video_commented", { video_id: videoId });
+
+    const { actorName, actorUsername } = await getActorIdentity(user);
+
+    await createNotification({
+      userId: video.user_id,
+      actorId: user.id,
+      type: "video_commented",
+      data: {
+        video_id: videoId,
+        comment_id: data.id,
+        actor_name: actorName,
+        actor_username: actorUsername
+      }
+    });
+
+    const engagement = await getVideoEngagement(videoId, user.id);
+
+    res.json({
+      comment: {
+        ...data,
+        display_name: actorName || "Creator"
+      },
+      likes: engagement.likes,
+      comment_count: engagement.comments,
+      liked: engagement.liked
+    });
+
+  } catch (err) {
+    console.error("VIDEO COMMENT SERVER ERROR:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+app.delete("/api/videos/:videoId", async (req, res) => {
+  try {
+    const user = await getUser(req);
+    if (!user) return res.status(401).json({ error: "Unauthorized" });
+
+    const videoId = String(req.params.videoId || "").trim();
+
+    const { data: video, error: videoError } = await supabase
+      .from("videos")
+      .select("id, user_id, video_url")
+      .eq("id", videoId)
+      .eq("user_id", user.id)
+      .single();
+
+    if (videoError || !video) {
+      return res.status(404).json({ error: "Video not found" });
+    }
+
+    await supabase.from("video_likes").delete().eq("video_id", videoId);
+    await supabase.from("video_comments").delete().eq("video_id", videoId);
+
+    const storagePath = extractVideoStoragePathFromPublicUrl(video.video_url);
+
+    if (storagePath) {
+      const { error: storageError } = await supabase.storage
+        .from("videos")
+        .remove([storagePath]);
+
+      if (storageError) {
+        console.warn("VIDEO STORAGE DELETE WARNING:", storageError.message || storageError);
+      }
+    }
+
+    const { error: deleteError } = await supabase
+      .from("videos")
+      .delete()
+      .eq("id", videoId)
+      .eq("user_id", user.id);
+
+    if (deleteError) {
+      console.error("VIDEO DELETE ERROR:", deleteError);
+      return res.status(500).json({ error: "Could not delete video" });
+    }
+
+    await logEvent(user.id, "video_deleted", { video_id: videoId });
+
+    res.json({ success: true });
+
+  } catch (err) {
+    console.error("VIDEO DELETE SERVER ERROR:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 
 
 // Sentry test route. Enable only when explicitly requested in environment.

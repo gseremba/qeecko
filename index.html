@@ -432,6 +432,15 @@
   animation: zoomIn 0.25s ease;
 }
 
+.modal-video {
+  width: min(92vw, 980px);
+  max-height: 78vh;
+  border-radius: 20px;
+  background: #020617;
+  box-shadow: 0 20px 80px rgba(0,0,0,0.6);
+  animation: zoomIn 0.25s ease;
+}
+
 .close-modal {
   position: absolute;
   top: 10px;
@@ -453,6 +462,246 @@
 
 .close-modal:hover {
   transform: scale(1.1);
+}
+
+
+.image-modal-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 18px;
+}
+
+.image-modal-actions .modal-download {
+  margin-top: 0;
+}
+
+.modal-animate {
+  background: #4f46e5;
+  color: white;
+}
+
+.video-modal-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 18px;
+}
+
+.video-modal-actions button {
+  margin-top: 0;
+}
+
+.video-like-active {
+  background: #f43f5e !important;
+  color: white !important;
+}
+
+.video-comments-panel {
+  width: min(92vw, 760px);
+  background: #111827;
+  border: 1px solid #334155;
+  border-radius: 16px;
+  padding: 12px;
+  margin-top: 12px;
+  display: none;
+}
+
+.video-comments-panel.show {
+  display: block;
+}
+
+.video-comments-list {
+  max-height: 180px;
+  overflow-y: auto;
+  display: grid;
+  gap: 8px;
+}
+
+.video-comment-item {
+  border-bottom: 1px solid #334155;
+  padding-bottom: 8px;
+  font-size: 13px;
+}
+
+.video-comment-item:last-child {
+  border-bottom: none;
+}
+
+.video-comment-item strong {
+  display: block;
+  margin-bottom: 3px;
+}
+
+.video-comment-form {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.video-comment-form input {
+  flex: 1;
+  margin-top: 0;
+}
+
+.video-comment-form button {
+  margin-top: 0;
+  white-space: nowrap;
+}
+
+.video-share-panel {
+  width: min(92vw, 560px);
+  background: #111827;
+  border: 1px solid #334155;
+  border-radius: 16px;
+  padding: 12px;
+  margin-top: 12px;
+  display: none;
+}
+
+.video-share-panel.show {
+  display: block;
+}
+
+.video-share-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.video-share-row input {
+  flex: 1;
+  margin-top: 0;
+  background: #0f172a;
+  color: white;
+}
+
+.video-share-row button {
+  margin-top: 0;
+  white-space: nowrap;
+}
+
+.video-share-help {
+  font-size: 12px;
+  opacity: 0.75;
+  margin-top: 6px;
+}
+
+.public-video-card {
+  background: #111827;
+  border: 1px solid #334155;
+  border-radius: 18px;
+  padding: 14px;
+  margin-top: 12px;
+}
+
+.public-video-card video {
+  width: 100%;
+  max-height: 72vh;
+  border-radius: 16px;
+  background: #020617;
+}
+
+.public-video-view .ai-workflow-panel,
+.public-video-view .collapsible-tools,
+.public-video-view .prompt-history-tools,
+.public-video-view #promptHistoryPanel,
+.public-video-view #prompt,
+.public-video-view #style,
+.public-video-view #generateBtn,
+.public-video-view button[onclick="enhancePrompt()"],
+.public-video-view #suggestions,
+.public-video-view .upload-panel,
+.public-video-view #imageGrid,
+.public-video-view .gallery-toolbar,
+.public-video-view .gallery-toolbar-secondary,
+.public-video-view .collection-tools,
+.public-video-view .bulk-actions-bar,
+.public-video-view #collectionDropZoneList,
+.public-video-view .video-module-panel {
+  display: none !important;
+}
+
+.public-video-view .gallery-panel {
+  display: block;
+  max-height: none;
+  overflow-y: visible;
+}
+
+.public-video-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+}
+
+.public-video-layout .public-video-card {
+  margin-top: 0;
+}
+
+.public-video-meta {
+  opacity: 0.75;
+  margin-top: 4px;
+  line-height: 1.45;
+}
+
+@media (min-width: 920px) {
+  .public-video-layout .public-video-card {
+    max-width: 920px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+  }
+}
+
+
+/* Public creator profile content tabs */
+.creator-content-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.creator-content-tabs button {
+  margin-top: 0;
+}
+
+.creator-content-tabs button.active {
+  background: #6366f1;
+  color: white;
+}
+
+.public-creator-video-card video {
+  width: 100%;
+  height: 210px;
+  object-fit: cover;
+  background: #020617;
+  border-radius: 14px 14px 0 0;
+  display: block;
+}
+
+.public-creator-video-card .video-card-content {
+  padding: 10px;
+}
+
+
+.trending-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.trending-tabs button {
+  margin-top: 0;
+  background: #334155;
+  color: white;
+}
+
+.trending-tabs button.active {
+  background: #6366f1;
 }
 
 .modal-download {
@@ -775,6 +1024,18 @@
   white-space: nowrap;
 }
 
+.album-name-input.collapsed {
+  display: none;
+}
+
+.gallery-album-toolbar select {
+  max-width: 220px;
+}
+
+.gallery-album-toolbar .album-name-input {
+  max-width: 220px;
+}
+
 .tag-pill {
   display: inline-block;
   background: #334155;
@@ -826,7 +1087,9 @@
 .public-profile-view #collectionDropZoneList {
   display: none !important;
 }
-
+.public-profile-view #homeGeneratorPanel {
+  display: none !important;
+}
 .modal-card-wide {
   width: 380px;
   max-width: calc(100vw - 40px);
@@ -1458,9 +1721,182 @@
   }
 }
 
+/* Home simple generator */
+
+.home-generator-panel {
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 14px;
+  padding: 10px 12px;
+  margin-top: 8px;
+}
+
+.home-generator-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.home-generator-top strong {
+  line-height: 1;
+}
+
+.generation-switch {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.generation-switch button {
+  margin-top: 0;
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+.generation-switch button.active {
+  background: #6366f1;
+  color: white;
+  font-weight: 700;
+}
+
+.home-generator-prompt-row {
+  margin-top: 8px;
+}
+
+.home-generator-prompt-row input {
+  width: 100%;
+  margin-top: 0;
+}
+
+.home-generator-actions-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.home-generator-actions-row select {
+  flex: 1 1 180px;
+  min-width: 160px;
+}
+
+.home-generator-actions-row button {
+  flex: 0 0 auto;
+}
+
+.home-generator-actions-row input,
+.home-generator-actions-row select,
+.home-generator-actions-row button {
+  margin-top: 0;
+}
+
+.home-video-options {
+  display: none;
+}
+
+.home-generator-panel.video-mode .home-image-options {
+  display: none;
+}
+
+.home-generator-panel.video-mode .home-video-options {
+  display: block;
+}
+
+.home-mode-help {
+  font-size: 12px;
+  opacity: 0.72;
+  margin-top: 6px;
+}
+
+/* --- New simple generator layout. It takes to much space ---*/
+/*
+.home-generator-panel {
+  background: linear-gradient(180deg, #1e293b, #111827);
+  border: 1px solid #475569;
+  border-radius: 20px;
+  padding: 16px;
+  margin-top: 10px;
+  box-shadow: 0 14px 40px rgba(0,0,0,0.28);
+}
+
+.home-generator-top h3 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.generation-switch {
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 999px;
+  padding: 4px;
+}
+
+.generation-switch button {
+  border-radius: 999px;
+  padding: 8px 14px;
+}
+
+.generation-switch button.active {
+  background: #6366f1;
+  color: white;
+}
+
+#prompt {
+  min-height: 110px;
+  font-size: 15px;
+  line-height: 1.5;
+  background: #0f172a;
+  color: white;
+  border: 1px solid #334155;
+}
+
+#generateBtn {
+  background: linear-gradient(135deg, #6366f1, #9333ea);
+  color: white;
+  font-weight: 700;
+  padding: 11px 16px;
+}
+*/
+
+@media (max-width: 860px) {
+  .home-generator-actions-row {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .home-generator-actions-row button,
+  .home-generator-actions-row select {
+    width: 100%;
+  }
+}
+
+
+.advanced-tools-panel {
+  margin-top: 10px;
+}
+
+.advanced-tools-panel .ai-workflow-panel,
+.advanced-tools-panel .collapsible-tools {
+  background: #111827;
+}
+
+.public-mode .advanced-tools-panel,
+.public-profile-view .advanced-tools-panel,
+.public-video-view .advanced-tools-panel {
+  display: none !important;
+}
+
+
+/* Hide simple Create panel on discovery/feed pages */
+body.hide-home-generator #homeGeneratorPanel {
+  display: none !important;
+}
 
 /* Uploaded image workflow */
-.upload-panel{background:#1e293b;border:1px solid #334155;border-radius:14px;padding:10px;margin-top:10px}.upload-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.upload-row input[type="file"]{flex:1;min-width:220px;margin-top:0;background:#111827;color:white}.upload-row button{margin-top:0}.upload-preview{display:none;gap:10px;align-items:center;margin-top:10px;background:#111827;border-radius:12px;padding:8px}.upload-preview img{width:74px;height:74px;object-fit:cover;border-radius:10px}.upload-preview-meta{flex:1;font-size:12px;opacity:.85;min-width:0}.upload-preview-meta strong{display:block;font-size:13px;opacity:1;margin-bottom:4px}.upload-preview-meta span{display:block;word-break:break-word}
+.upload-panel{background:#1e293b;border:1px solid #334155;border-radius:14px;padding:10px;margin-top:10px}.upload-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.upload-row input[type="file"]{flex:1;min-width:220px;margin-top:0;background:#111827;color:white}.upload-row button{margin-top:0}.upload-preview{display:none;gap:10px;align-items:center;margin-top:10px;background:#111827;border-radius:12px;padding:8px}.upload-preview img{width:74px;height:74px;object-fit:cover;border-radius:10px}.upload-preview-meta{flex:1;font-size:12px;opacity:.85;min-width:0}.upload-preview-meta strong{display:block;font-size:13px;opacity:1;margin-bottom:4px}.upload-preview-meta span{display:block;word-break:break-word}.video-animate-btn{background:#0f766e!important;color:white}.image-video-badge{display:inline-block;background:#0f766e;color:white;border-radius:999px;padding:4px 7px;font-size:11px;margin-top:6px}
 
 
 .app-booting {
@@ -2000,6 +2436,11 @@ textarea {
     max-height: 72vh;
   }
 
+  .modal-video {
+    width: calc(100vw - 24px);
+    max-height: 72vh;
+  }
+
   .modal-download {
     width: calc(100vw - 28px);
   }
@@ -2252,6 +2693,97 @@ textarea {
   .gallery-actions,
   .public-social-row {
     grid-template-columns: 1fr;
+  }
+}
+
+
+/* Compact gallery card actions: Open | Favorite | Comments | More */
+.gallery-actions.compact-card-actions {
+  display: grid;
+  //grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: auto 70px 70px auto;
+  gap: 6px;
+  align-items: stretch;
+  position: relative;
+}
+
+.gallery-actions.compact-card-actions > button,
+.gallery-actions.compact-card-actions > details > summary {
+  width: 100%;
+  min-width: 0;
+  margin-top: 0;
+  padding: 7px 8px;
+  font-size: 12px;
+  text-align: center;
+}
+
+.gallery-more-menu {
+  position: relative;
+}
+
+.gallery-card.more-menu-open {
+  overflow: visible;
+  z-index: 30;
+}
+
+.gallery-card.more-menu-open .gallery-content {
+  position: relative;
+  z-index: 31;
+}
+
+.gallery-more-menu summary {
+  list-style: none;
+  background: #334155;
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.gallery-more-menu summary::-webkit-details-marker {
+  display: none;
+}
+
+.gallery-more-menu[open] summary {
+  background: #6366f1;
+}
+
+.gallery-more-dropdown {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 8px);
+  z-index: 9999;
+  display: grid;
+  gap: 6px;
+  min-width: 160px;
+  padding: 8px;
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  box-shadow: 0 14px 35px rgba(0,0,0,0.45);
+}
+
+.gallery-more-dropdown button {
+  width: 100%;
+  min-width: 0;
+  margin-top: 0;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.gallery-fav-action.active {
+  background: #f59e0b !important;
+  color: #111827 !important;
+}
+
+@media (max-width: 390px) {
+  .gallery-actions.compact-card-actions {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .gallery-more-dropdown {
+    right: auto;
+    left: 0;
   }
 }
 
@@ -2548,6 +3080,1836 @@ body.legal-mode #landingPage {
   }
 }
 
+
+/* =========================
+   Video generation module
+   ========================= */
+.video-module-panel {
+  display: none;
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 18px;
+  padding: 14px;
+  margin-top: 12px;
+}
+
+.video-module-panel.show {
+  display: block;
+}
+
+.video-generator-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 170px auto;
+  gap: 10px;
+  align-items: end;
+  margin-top: 10px;
+}
+
+.video-generator-grid textarea {
+  width: 100%;
+  min-height: 92px;
+  border-radius: 10px;
+  border: none;
+  padding: 10px;
+  resize: vertical;
+}
+
+.video-generator-grid select {
+  margin-top: 0;
+}
+
+.video-cost-note,
+.video-status-text {
+  font-size: 12px;
+  opacity: 0.75;
+  margin-top: 8px;
+  line-height: 1.4;
+}
+
+.video-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.video-card {
+  background: #111827;
+  border: 1px solid #334155;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 12px 35px rgba(0,0,0,0.28);
+}
+
+.video-card video {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #020617;
+  display: block;
+}
+
+.video-card-content {
+  padding: 12px;
+}
+
+.video-card-title {
+  font-size: 13px;
+  line-height: 1.4;
+  height: 38px;
+  overflow: hidden;
+  opacity: 0.88;
+}
+
+.video-card-meta {
+  font-size: 12px;
+  opacity: 0.62;
+  margin-top: 8px;
+}
+
+.video-card-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.video-card-actions button {
+  flex: 1;
+  min-width: 82px;
+  margin-top: 0;
+  font-size: 12px;
+}
+
+.video-card-actions.compact-card-actions {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  align-items: stretch;
+  position: relative;
+}
+
+.video-card-actions.compact-card-actions > button,
+.video-card-actions.compact-card-actions > details > summary {
+  width: 100%;
+  min-width: 0;
+  margin-top: 0;
+  padding: 7px 8px;
+  font-size: 12px;
+  text-align: center;
+}
+
+.video-card.more-menu-open,
+.video-card:has(.gallery-more-menu[open]) {
+  overflow: visible;
+  z-index: 30;
+  position: relative;
+}
+
+.video-card.more-menu-open .video-card-content {
+  position: relative;
+  z-index: 31;
+}
+
+.video-card-like.active {
+  background: #f43f5e !important;
+  color: white !important;
+}
+
+.video-processing {
+  min-height: 136px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #020617;
+  color: rgba(255,255,255,0.74);
+  text-align: center;
+  padding: 18px;
+}
+
+.public-mode .video-module-panel,
+.public-profile-view .video-module-panel {
+  display: none !important;
+}
+
+@media (max-width: 760px) {
+  .video-generator-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .video-generator-grid button,
+  .video-generator-grid select {
+    width: 100%;
+  }
+}
+
+
+
+/* Phase 1A: Unified Media Cards
+   Shared visual system for image and video cards without changing existing actions. */
+.media-card {
+  background: #111827;
+  border: 1px solid #334155;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 12px 35px rgba(0,0,0,0.30);
+  transition: transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
+}
+
+.media-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(99, 102, 241, 0.65);
+  box-shadow: 0 16px 42px rgba(0,0,0,0.38);
+}
+
+.media-card img,
+.media-card video {
+  width: 100%;
+  height: 210px;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  background: #020617;
+  display: block;
+}
+
+.media-card .gallery-content,
+.media-card .video-card-content {
+  padding: 12px;
+}
+
+.media-card-title,
+.media-card .gallery-prompt,
+.media-card .video-card-title {
+  font-size: 13px;
+  line-height: 1.4;
+  min-height: 38px;
+  max-height: 38px;
+  overflow: hidden;
+  opacity: 0.9;
+}
+
+.media-card-meta,
+.media-card .gallery-date,
+.media-card .video-card-meta {
+  font-size: 12px;
+  opacity: 0.66;
+  margin-top: 8px;
+}
+
+.media-card-actions,
+.media-card .gallery-actions.compact-card-actions,
+.media-card .video-card-actions.compact-card-actions {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  align-items: stretch;
+  margin-top: 10px;
+}
+
+.media-card-actions > button,
+.media-card-actions > details > summary,
+.media-card .gallery-actions.compact-card-actions > button,
+.media-card .gallery-actions.compact-card-actions > details > summary,
+.media-card .video-card-actions.compact-card-actions > button,
+.media-card .video-card-actions.compact-card-actions > details > summary {
+  width: 100%;
+  min-width: 0;
+  margin-top: 0;
+  padding: 7px 8px;
+  font-size: 12px;
+  text-align: center;
+}
+
+.media-card-image .favorite-btn,
+.media-card-image .select-checkbox {
+  z-index: 3;
+}
+
+.media-card-video video {
+  cursor: pointer;
+}
+
+.media-card .gallery-more-menu summary {
+  list-style: none;
+}
+
+.media-card .gallery-more-menu summary::-webkit-details-marker {
+  display: none;
+}
+
+.media-card.more-menu-open {
+  overflow: visible;
+  z-index: 35;
+}
+
+@media (max-width: 720px) {
+  .media-card img,
+  .media-card video {
+    height: 210px;
+  }
+}
+
+
+
+/* Creator Studio v1 */
+.creator-studio-panel {
+  display: none;
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 18px;
+  padding: 14px;
+  margin-top: 12px;
+}
+
+.creator-studio-panel.show {
+  display: block;
+}
+
+.creator-studio-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.creator-studio-title h3 {
+  margin: 0;
+}
+
+.creator-studio-title p {
+  margin: 5px 0 0 0;
+  opacity: 0.75;
+  font-size: 13px;
+}
+
+.creator-studio-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.creator-studio-tabs button {
+  margin-top: 0;
+}
+
+.creator-studio-tabs button.active {
+  background: #6366f1;
+  color: white;
+}
+
+.creator-studio-overview {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.creator-studio-stat {
+  background: #111827;
+  border: 1px solid #334155;
+  border-radius: 14px;
+  padding: 12px;
+}
+
+.creator-studio-stat strong {
+  display: block;
+  font-size: 22px;
+}
+
+.creator-studio-stat span {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  opacity: 0.72;
+}
+
+.creator-studio-help {
+  margin-top: 10px;
+  padding: 10px;
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  font-size: 13px;
+  opacity: 0.9;
+}
+
+
+.creator-analytics-panel {
+  margin-top: 12px;
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 16px;
+  padding: 12px;
+}
+
+.creator-analytics-panel h4 {
+  margin: 0 0 10px 0;
+  font-size: 15px;
+}
+
+.creator-analytics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+}
+
+.creator-analytics-card {
+  background: #111827;
+  border: 1px solid #334155;
+  border-radius: 14px;
+  padding: 11px;
+}
+
+.creator-analytics-card strong {
+  display: block;
+  font-size: 20px;
+}
+
+.creator-analytics-card span {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  opacity: 0.72;
+}
+
+.creator-top-media-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.creator-top-media-card {
+  background: #111827;
+  border: 1px solid #334155;
+  border-radius: 14px;
+  padding: 11px;
+}
+
+.creator-top-media-card strong {
+  display: block;
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+
+.creator-top-media-prompt {
+  font-size: 12px;
+  opacity: 0.8;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 34px;
+}
+
+.creator-top-media-meta {
+  font-size: 12px;
+  opacity: 0.75;
+  margin-top: 8px;
+}
+
+.creator-top-media-card button {
+  margin-top: 8px;
+}
+
+body.creator-studio-view #homeGeneratorPanel,
+body.creator-studio-view #advancedToolsPanel,
+body.creator-studio-view #imageGrid,
+body.creator-studio-view #placeholder {
+  display: none !important;
+}
+
+.creator-studio-view #videoPrompt,
+.creator-studio-view #videoDuration,
+.creator-studio-view #videoAspectRatio,
+.creator-studio-view #generateVideoBtn,
+.creator-studio-view .video-generation-controls {
+  display: none !important;
+}
+
+.creator-studio-view #videoModuleHideBtn {
+    display: none !important;
+}
+
+/* Creator Studio - hide video generation labels */
+.creator-studio-view .video-cost-note {
+    display: none !important;
+}
+
+body.creator-studio-tab-images #videoModulePanel {
+  display: none !important;
+}
+
+body.creator-studio-tab-videos .gallery-panel,
+body.creator-studio-tab-videos #collectionDropZoneList {
+  display: none !important;
+}
+
+body.creator-studio-tab-collections #videoModulePanel,
+body.creator-studio-tab-collections #gallery {
+  display: none !important;
+}
+
+body.creator-studio-tab-collections .gallery-toolbar,
+body.creator-studio-tab-collections .bulk-actions-bar {
+  display: none !important;
+}
+
+body.creator-studio-tab-collections .gallery-panel {
+  display: block !important;
+  max-height: none;
+}
+
+body.creator-studio-tab-collections #collectionDropZoneList {
+  display: grid !important;
+}
+
+body.creator-studio-view .gallery-header h3 {
+  font-size: 18px;
+}
+
+
+
+/* =========================
+   Phase 3D.5 — Creator Studio Polish
+   Frontend-only dashboard refinement
+   ========================= */
+.creator-studio-panel {
+  background:
+    radial-gradient(circle at top left, rgba(99,102,241,0.16), transparent 34%),
+    #1e293b;
+}
+
+.creator-studio-pro-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: start;
+  padding: 14px;
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 18px;
+}
+
+.creator-studio-title h3 {
+  font-size: 24px;
+  letter-spacing: -0.02em;
+}
+
+.creator-studio-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(99,102,241,0.14);
+  border: 1px solid rgba(129,140,248,0.35);
+  color: #c7d2fe;
+  border-radius: 999px;
+  padding: 5px 9px;
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+
+.creator-studio-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.creator-studio-actions button {
+  margin-top: 0;
+  min-height: 36px;
+}
+
+.creator-studio-close {
+  margin-top: 0;
+}
+
+.creator-studio-dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.creator-studio-stat {
+  min-height: 86px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 10px 28px rgba(0,0,0,0.22);
+}
+
+.creator-studio-stat small {
+  display: block;
+  margin-top: 8px;
+  font-size: 11px;
+  opacity: 0.58;
+}
+
+.creator-studio-tabs {
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 999px;
+  padding: 5px;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.creator-studio-tabs button {
+  border-radius: 999px;
+  min-height: 34px;
+  padding: 7px 12px;
+}
+
+.creator-studio-tabs button:not(.active):hover {
+  background: #1e293b;
+}
+
+.creator-studio-section-card {
+  margin-top: 12px;
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 16px;
+  padding: 12px;
+}
+
+.creator-studio-section-title {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.creator-studio-section-title h4 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.creator-studio-section-title span {
+  font-size: 12px;
+  opacity: 0.68;
+}
+
+.creator-studio-help {
+  border-left: 3px solid #6366f1;
+}
+
+@media (max-width: 720px) {
+  .creator-studio-pro-header {
+    grid-template-columns: 1fr;
+  }
+
+  .creator-studio-close {
+    width: 100%;
+  }
+
+  .creator-studio-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .creator-studio-actions button {
+    width: 100%;
+  }
+
+  .creator-studio-tabs {
+    width: 100%;
+    border-radius: 16px;
+  }
+
+  .creator-studio-tabs button {
+    flex: 1;
+  }
+}
+
+
+/* Phase 1C — Unified Viewer */
+.unified-viewer-shell {
+  width: min(94vw, 980px);
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+}
+
+.unified-viewer-media {
+  background: #020617;
+  border: 1px solid #334155;
+  border-radius: 22px;
+  padding: 12px;
+  box-shadow: 0 20px 80px rgba(0,0,0,0.6);
+}
+
+.unified-viewer-media img,
+.unified-viewer-media video {
+  width: 100%;
+  max-height: 72vh;
+  object-fit: contain;
+  border-radius: 16px;
+  background: #020617;
+  display: block;
+}
+
+.unified-viewer-actions,
+.image-modal-actions.unified-viewer-actions,
+.video-modal-actions.unified-viewer-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 0;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid #334155;
+  border-radius: 16px;
+  padding: 10px;
+  backdrop-filter: blur(10px);
+}
+
+.unified-viewer-actions button,
+.unified-viewer-actions .modal-download {
+  margin-top: 0;
+  padding: 9px 12px;
+  font-size: 13px;
+  border-radius: 10px;
+}
+
+.unified-viewer-meta {
+  background: #111827;
+  border: 1px solid #334155;
+  border-radius: 16px;
+  padding: 10px 12px;
+  font-size: 13px;
+  line-height: 1.45;
+  opacity: 0.9;
+}
+
+.unified-viewer-meta strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.unified-viewer-shell .video-comments-panel,
+.unified-viewer-shell .video-share-panel {
+  width: 100%;
+  margin-top: 0;
+}
+
+@media (max-width: 700px) {
+  .unified-viewer-shell {
+    width: 96vw;
+    max-height: 94vh;
+  }
+
+  .unified-viewer-media {
+    padding: 8px;
+    border-radius: 16px;
+  }
+
+  .unified-viewer-media img,
+  .unified-viewer-media video {
+    max-height: 64vh;
+    border-radius: 12px;
+  }
+
+  .unified-viewer-actions button,
+  .unified-viewer-actions .modal-download {
+    flex: 1 1 auto;
+    min-width: 96px;
+  }
+}
+
+
+
+/* =========================
+   Phase 1D - Professional Media Gallery
+   Safe visual polish for image + video cards
+   ========================= */
+.gallery {
+  align-items: stretch;
+}
+
+.media-card {
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, #111827 0%, #0f172a 100%);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 20px;
+  overflow: hidden;
+  min-height: 100%;
+  box-shadow: 0 18px 45px rgba(0,0,0,0.28);
+}
+
+.media-card:hover {
+  transform: translateY(-5px);
+  border-color: rgba(99, 102, 241, 0.55);
+  box-shadow: 0 24px 70px rgba(0,0,0,0.42);
+}
+
+.media-card img,
+.media-card video,
+.media-thumb {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  height: auto !important;
+  object-fit: cover;
+  background: #020617;
+  display: block;
+}
+
+.media-thumb {
+  position: relative;
+  overflow: hidden;
+}
+
+.media-thumb video,
+.media-thumb img {
+  height: 100% !important;
+}
+
+.media-type-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 2;
+  background: rgba(15, 23, 42, 0.82);
+  border: 1px solid rgba(255,255,255,0.14);
+  color: white;
+  border-radius: 999px;
+  padding: 5px 9px;
+  font-size: 11px;
+  font-weight: 700;
+  backdrop-filter: blur(8px);
+}
+
+.video-play-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle, rgba(0,0,0,0.12), rgba(0,0,0,0.35));
+  pointer-events: none;
+}
+
+.video-play-overlay span {
+  width: 52px;
+  height: 52px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.82);
+  border: 1px solid rgba(255,255,255,0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  padding-left: 3px;
+  box-shadow: 0 12px 35px rgba(0,0,0,0.35);
+}
+
+.media-card .gallery-content,
+.media-card .video-card-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 12px;
+  gap: 8px;
+}
+
+.media-card-title,
+.media-card .gallery-prompt,
+.media-card .video-card-title {
+  height: auto !important;
+  min-height: 42px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.35;
+  color: #f8fafc;
+}
+
+.media-card-meta,
+.media-card .gallery-date,
+.media-card .video-card-meta {
+  font-size: 11px;
+  color: #cbd5e1;
+  opacity: 0.78;
+  line-height: 1.35;
+}
+
+.media-card .gallery-tags {
+  min-height: 0;
+}
+
+.media-card .tag-pill {
+  font-size: 10px;
+  padding: 3px 7px;
+  margin-top: 3px;
+}
+
+.media-card-actions,
+.media-card .gallery-actions.compact-card-actions,
+.media-card .video-card-actions.compact-card-actions {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  gap: 7px;
+  margin-top: auto;
+  align-items: center;
+}
+
+.media-card-actions > button,
+.media-card-actions > details > summary,
+.media-card .gallery-actions.compact-card-actions > button,
+.media-card .gallery-actions.compact-card-actions > details > summary,
+.media-card .video-card-actions.compact-card-actions > button,
+.media-card .video-card-actions.compact-card-actions > details > summary {
+  min-width: 0;
+  height: 34px;
+  padding: 7px 9px;
+  border-radius: 10px;
+  font-size: 12px;
+  margin-top: 0;
+}
+
+.media-card-actions > button:first-child,
+.media-card .gallery-actions.compact-card-actions > button:first-child,
+.media-card .video-card-actions.compact-card-actions > button:first-child {
+  font-weight: 700;
+  background: #6366f1;
+  color: white;
+}
+
+.media-card .gallery-more-menu {
+  position: relative;
+}
+
+.media-card .gallery-more-menu summary {
+  list-style: none;
+  cursor: pointer;
+  width: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.media-card .gallery-more-menu summary::-webkit-details-marker {
+  display: none;
+}
+
+.media-card .gallery-more-dropdown {
+  right: 0;
+  bottom: 42px;
+  top: auto;
+  min-width: 168px;
+}
+
+.media-card .favorite-btn,
+.media-card .select-checkbox {
+  top: 10px;
+}
+
+.media-card .favorite-btn {
+  box-shadow: 0 8px 22px rgba(0,0,0,0.28);
+}
+
+.media-card.more-menu-open {
+  z-index: 40;
+}
+
+.video-processing {
+  aspect-ratio: 1 / 1;
+  min-height: 0 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  text-align: center;
+  background: linear-gradient(135deg, #1e293b, #020617);
+  color: #cbd5e1;
+}
+
+@media (max-width: 720px) {
+  .media-card-actions,
+  .media-card .gallery-actions.compact-card-actions,
+  .media-card .video-card-actions.compact-card-actions {
+    grid-template-columns: 1fr auto auto auto;
+  }
+
+  .media-card img,
+  .media-card video,
+  .media-thumb {
+    aspect-ratio: 4 / 3;
+  }
+}
+
+
+/* Creator Studio specific hiding */
+#creatorStudioPanel.show #videoModuleHideBtn,
+#creatorStudioPanel.show .video-cost-note {
+  display:none !important;
+}
+
+/* Phase 2A: Views */
+.media-view-pill,
+.view-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #334155;
+  color: white;
+  border-radius: 999px;
+  padding: 7px 10px;
+  font-size: 12px;
+  margin-top: 0;
+  opacity: 0.92;
+}
+.media-card-open-btn {
+  min-width: 52px !important;
+  width: auto !important;
+  flex: 0 0 auto !important;
+}
+.gallery-actions.compact-card-actions,
+.video-card-actions.compact-card-actions {
+  grid-template-columns: auto minmax(46px, 1fr) minmax(46px, 1fr) auto;
+}
+
+
+
+/* Phase 2A polish: prevent prompt preview from cutting a partial third line */
+.media-card-title,
+.media-card .gallery-prompt,
+.media-card .video-card-title {
+  min-height: calc(1.35em * 2) !important;
+  max-height: calc(1.35em * 2) !important;
+  line-height: 1.35 !important;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+}
+
+
+/* =========================
+   Recommendations - More Like This
+   ========================= */
+.recommendations-panel {
+  width: min(92vw, 980px);
+  margin-top: 14px;
+  background: #111827;
+  border: 1px solid #334155;
+  border-radius: 18px;
+  padding: 12px;
+  display: none;
+}
+
+.recommendations-panel.show {
+  display: block;
+}
+
+.recommendations-panel h4 {
+  margin: 0 0 10px 0;
+  font-size: 14px;
+}
+
+.recommendations-strip {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(132px, 150px);
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: thin;
+}
+
+.recommendation-card {
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 14px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.recommendation-card:hover {
+  transform: translateY(-2px);
+  border-color: #6366f1;
+}
+
+.recommendation-thumb {
+  position: relative;
+  height: 94px;
+  background: #020617;
+}
+
+.recommendation-thumb img,
+.recommendation-thumb video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.recommendation-type {
+  position: absolute;
+  top: 7px;
+  left: 7px;
+  background: rgba(15,23,42,0.82);
+  border: 1px solid rgba(255,255,255,0.16);
+  border-radius: 999px;
+  padding: 3px 6px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.recommendation-play {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 24px;
+  color: white;
+  text-shadow: 0 4px 14px rgba(0,0,0,0.7);
+}
+
+.recommendation-body {
+  padding: 8px;
+}
+
+.recommendation-prompt {
+  font-size: 11px;
+  line-height: 1.35;
+  height: 30px;
+  overflow: hidden;
+}
+
+.recommendation-stats {
+  margin-top: 6px;
+  font-size: 10px;
+  opacity: 0.72;
+}
+
+@media (max-width: 640px) {
+  .recommendations-panel {
+    width: calc(100vw - 24px);
+  }
+
+  .recommendations-strip {
+    grid-auto-columns: minmax(124px, 138px);
+  }
+}
+
+
+/* Recommendations viewer sizing fix - keep thumbnails fully visible on laptop screens */
+.unified-viewer-modal {
+  align-items: flex-start !important;
+  justify-content: flex-start !important;
+  overflow-y: auto !important;
+  padding: 56px 12px 24px !important;
+}
+
+.unified-viewer-modal .unified-viewer-shell {
+  max-height: none !important;
+  margin: 0 auto;
+}
+
+.unified-viewer-modal .unified-viewer-media img,
+.unified-viewer-modal .unified-viewer-media video {
+  max-height: min(58vh, 520px) !important;
+}
+
+.unified-viewer-modal .recommendations-panel {
+  width: 100% !important;
+  flex: 0 0 auto;
+}
+
+.unified-viewer-modal .recommendations-strip {
+  display: flex !important;
+  align-items: stretch;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 2px 2px 8px;
+}
+
+.unified-viewer-modal .recommendation-card {
+  flex: 0 0 150px;
+}
+
+.unified-viewer-modal .recommendation-thumb {
+  height: 100px;
+}
+
+@media (max-width: 700px) {
+  .unified-viewer-modal {
+    padding-top: 52px !important;
+  }
+
+  .unified-viewer-modal .unified-viewer-media img,
+  .unified-viewer-modal .unified-viewer-media video {
+    max-height: 52vh !important;
+  }
+
+  .unified-viewer-modal .recommendation-card {
+    flex-basis: 138px;
+  }
+}
+
+
+
+/* Creator Discovery */
+.creator-discovery-section {
+  grid-column: 1 / -1;
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 18px;
+  padding: 12px;
+  margin-top: 8px;
+}
+.creator-discovery-section h3 {
+  margin: 0 0 4px;
+}
+.creator-discovery-section p {
+  margin: 0 0 12px;
+  opacity: 0.72;
+  font-size: 13px;
+}
+.creator-discovery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+}
+.creator-discovery-grid .gallery-card {
+  margin: 0;
+}
+.creator-card .analytics-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+}
+@media (max-width: 720px) {
+  .creator-discovery-grid {
+    grid-template-columns: 1fr;
+  }
+  .creator-card .analytics-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+
+/* =========================
+   PHASE 3D.1 — UI CONSISTENCY PASS
+   CSS-only polish. No functionality changes.
+   ========================= */
+
+:root {
+  --q-bg: #0f172a;
+  --q-panel: #1e293b;
+  --q-card: #111827;
+  --q-border: #334155;
+  --q-border-soft: rgba(148, 163, 184, 0.22);
+  --q-primary: #6366f1;
+  --q-radius-sm: 10px;
+  --q-radius-md: 14px;
+  --q-radius-lg: 18px;
+  --q-radius-xl: 22px;
+  --q-space-xs: 6px;
+  --q-space-sm: 10px;
+  --q-space-md: 14px;
+  --q-space-lg: 18px;
+  --q-shadow-card: 0 12px 34px rgba(0,0,0,0.28);
+  --q-shadow-hover: 0 18px 42px rgba(0,0,0,0.36);
+}
+
+/* Consistent shell spacing */
+.container {
+  max-width: 1180px;
+  padding: 14px;
+}
+
+/* Consistent panels */
+.card,
+.gallery-panel,
+.dashboard-panel,
+.public-profile-card,
+.legal-page,
+.home-generator-panel,
+.ai-workflow-panel,
+.collapsible-tools,
+.upload-panel,
+.video-module-panel,
+.creator-studio-panel,
+.creator-analytics-card,
+.creator-discovery-panel,
+.creator-discovery-section,
+.recommendation-panel,
+.more-like-this-panel,
+.more-from-creator-panel {
+  border-radius: var(--q-radius-lg);
+  border: 1px solid var(--q-border);
+  background: var(--q-panel);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.16);
+}
+
+/* Consistent inner cards */
+.gallery-card,
+.media-card,
+.analytics-card,
+.feature-card,
+.notification-item,
+.credit-transaction-item,
+.admin-user-card,
+.admin-report-card,
+.admin-audit-card,
+.collection-drop-card,
+.creator-card,
+.creator-discovery-card,
+.recommendation-card,
+.more-like-this-card,
+.more-from-creator-card,
+.public-video-card {
+  border-radius: var(--q-radius-lg);
+  border: 1px solid var(--q-border-soft);
+  background: var(--q-card);
+  box-shadow: var(--q-shadow-card);
+}
+
+/* Consistent hover */
+.gallery-card,
+.media-card,
+.collection-drop-card,
+.creator-card,
+.creator-discovery-card,
+.recommendation-card,
+.more-like-this-card,
+.more-from-creator-card,
+.generated-image {
+  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+}
+
+.gallery-card:hover,
+.media-card:hover,
+.collection-drop-card:hover,
+.creator-card:hover,
+.creator-discovery-card:hover,
+.recommendation-card:hover,
+.more-like-this-card:hover,
+.more-from-creator-card:hover,
+.generated-image:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--q-shadow-hover);
+  border-color: rgba(99,102,241,0.55);
+}
+
+/* Consistent section titles */
+.gallery-header h3,
+.dashboard-header h3,
+.creator-studio-title,
+.creator-analytics-title,
+.creator-discovery-title,
+.recommendation-title,
+.more-like-this-title,
+.more-from-creator-title,
+.card h3,
+.card h2 {
+  margin-top: 0;
+  letter-spacing: -0.01em;
+}
+
+/* Consistent grids */
+.gallery,
+.image-grid,
+.analytics-grid,
+.profile-grid,
+.credit-history-summary,
+.collection-drop-list,
+.creator-discovery-grid,
+.recommendation-strip,
+.more-like-this-strip,
+.more-from-creator-strip {
+  gap: var(--q-space-md);
+}
+
+/* Consistent buttons */
+button,
+.nav-link-btn,
+.primary,
+.secondary,
+.like-btn,
+.comment-toggle-btn,
+.save-btn,
+.report-btn,
+.modal-download {
+  min-height: 36px;
+  border-radius: var(--q-radius-sm);
+  transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease, opacity 0.18s ease;
+}
+
+button:hover,
+.nav-link-btn:hover,
+.primary:hover,
+.secondary:hover,
+.like-btn:hover,
+.comment-toggle-btn:hover,
+.save-btn:hover,
+.report-btn:hover {
+  transform: translateY(-1px);
+}
+
+button:active,
+.nav-link-btn:active,
+.primary:active,
+.secondary:active {
+  transform: translateY(0);
+}
+
+/* Consistent toolbar alignment */
+.gallery-toolbar,
+.gallery-toolbar-secondary,
+.collection-tools,
+.bulk-actions-bar,
+.workflow-actions,
+.prompt-history-tools,
+.creator-content-tabs,
+.trending-tabs,
+.public-social-row,
+.admin-user-actions,
+.admin-report-actions,
+.credit-history-toolbar {
+  align-items: center;
+  gap: var(--q-space-sm);
+}
+
+.gallery-toolbar button,
+.gallery-toolbar-secondary button,
+.collection-tools button,
+.bulk-actions-bar button,
+.workflow-actions button,
+.prompt-history-tools button,
+.creator-content-tabs button,
+.trending-tabs button,
+.public-social-row button,
+.admin-user-actions button,
+.admin-report-actions button,
+.credit-history-toolbar button {
+  margin-top: 0;
+}
+
+/* Consistent inputs */
+input,
+select,
+textarea {
+  border-radius: var(--q-radius-sm);
+  background: #0f172a;
+  color: white;
+  border: 1px solid transparent;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: rgba(99,102,241,0.75);
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.18);
+}
+
+/* Consistent media thumbnails */
+.gallery-card img,
+.media-card img,
+.public-creator-video-card video,
+.recommendation-card img,
+.recommendation-card video,
+.more-like-this-card img,
+.more-like-this-card video,
+.more-from-creator-card img,
+.more-from-creator-card video {
+  background: #020617;
+}
+
+/* Prompt preview: stable full lines */
+.gallery-prompt,
+.media-card-prompt,
+.recommendation-prompt {
+  line-height: 1.4;
+  max-height: 3.92em;
+  overflow: hidden;
+}
+
+/* Viewer recommendation sections */
+.recommendation-panel,
+.more-like-this-panel,
+.more-from-creator-panel {
+  padding: var(--q-space-md);
+  margin-top: var(--q-space-md);
+}
+
+/* Empty states */
+.gallery-empty,
+.empty-state,
+.creator-empty-state,
+.recommendation-empty {
+  border: 1px dashed rgba(148,163,184,0.35);
+  background: rgba(15,23,42,0.68);
+  border-radius: var(--q-radius-lg);
+}
+
+/* Top navigation polish */
+.topbar {
+  padding-bottom: 2px;
+}
+
+.nav-link-btn {
+  min-height: 34px;
+  border-radius: 999px;
+}
+
+/* Mobile consistency */
+@media (max-width: 640px) {
+  .container {
+    padding: 10px;
+  }
+
+  .card,
+  .gallery-panel,
+  .dashboard-panel,
+  .public-profile-card,
+  .legal-page,
+  .home-generator-panel,
+  .ai-workflow-panel,
+  .collapsible-tools,
+  .upload-panel,
+  .video-module-panel {
+    border-radius: var(--q-radius-md);
+    padding: 12px;
+  }
+
+  button,
+  .nav-link-btn,
+  .primary,
+  .secondary,
+  .like-btn,
+  .comment-toggle-btn,
+  .save-btn,
+  .report-btn {
+    min-height: 40px;
+  }
+
+  .gallery,
+  .image-grid,
+  .analytics-grid,
+  .profile-grid,
+  .collection-drop-list {
+    gap: 10px;
+  }
+}
+
+
+
+/* =========================
+   Phase 3D.2b - Home Images/Videos switch
+   Makes video access clear without adding a top nav item
+   ========================= */
+.home-view-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.home-view-heading strong {
+  font-size: 18px;
+  line-height: 1.1;
+}
+.home-view-heading span {
+  font-size: 12px;
+  opacity: 0.72;
+}
+.home-generator-top .generation-switch button {
+  min-width: 108px;
+  font-weight: 700;
+}
+.home-generator-top .generation-switch {
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 999px;
+  padding: 4px;
+}
+.home-generator-top .generation-switch button {
+  border-radius: 999px;
+}
+@media (max-width: 560px) {
+  .home-generator-top {
+    align-items: stretch;
+  }
+  .home-generator-top .generation-switch {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .home-generator-top .generation-switch button {
+    min-width: 0;
+    width: 100%;
+  }
+}
+
+
+/* =========================
+   Phase 3D.3 - Loading Experience
+   Frontend-only polish
+   ========================= */
+.qeecko-loading-card,
+.qeecko-loading-inline {
+  background: #111827;
+  border: 1px solid #334155;
+  border-radius: 16px;
+  padding: 14px;
+  color: rgba(255,255,255,0.82);
+}
+
+.qeecko-loading-card {
+  grid-column: 1 / -1;
+}
+
+.qeecko-loading-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.qeecko-loading-dots {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.qeecko-loading-dots span {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: #c7d2fe;
+  opacity: 0.35;
+  animation: qeeckoLoadingPulse 1.1s infinite ease-in-out;
+}
+
+.qeecko-loading-dots span:nth-child(2) { animation-delay: 0.12s; }
+.qeecko-loading-dots span:nth-child(3) { animation-delay: 0.24s; }
+
+.qeecko-skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.qeecko-skeleton-card {
+  min-height: 170px;
+  border-radius: 14px;
+  background:
+    linear-gradient(90deg, rgba(51,65,85,0.45), rgba(71,85,105,0.75), rgba(51,65,85,0.45));
+  background-size: 220% 100%;
+  animation: qeeckoSkeletonSweep 1.35s infinite linear;
+  overflow: hidden;
+}
+
+.qeecko-skeleton-card::after {
+  content: "";
+  display: block;
+  height: 42px;
+  margin: 112px 10px 0;
+  border-radius: 10px;
+  background: rgba(15,23,42,0.42);
+}
+
+.recommendations-strip .qeecko-loading-inline,
+.creator-media-strip .qeecko-loading-inline {
+  min-width: 220px;
+  width: 100%;
+}
+
+.creator-analytics-card.loading {
+  min-height: 76px;
+  background:
+    linear-gradient(90deg, rgba(17,24,39,0.75), rgba(51,65,85,0.75), rgba(17,24,39,0.75));
+  background-size: 220% 100%;
+  animation: qeeckoSkeletonSweep 1.35s infinite linear;
+}
+
+@keyframes qeeckoSkeletonSweep {
+  from { background-position: 220% 0; }
+  to { background-position: -220% 0; }
+}
+
+@keyframes qeeckoLoadingPulse {
+  0%, 80%, 100% { opacity: 0.25; transform: translateY(0); }
+  40% { opacity: 1; transform: translateY(-2px); }
+}
+
+@media (max-width: 640px) {
+  .qeecko-skeleton-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+
+/* =========================
+   Phase 3D.4 - Empty States
+   Consistent action-oriented empty panels
+   ========================= */
+.qeecko-empty-state {
+  grid-column: 1 / -1;
+  background: linear-gradient(180deg, rgba(17,24,39,0.96), rgba(15,23,42,0.96));
+  border: 1px solid #334155;
+  border-radius: 18px;
+  padding: 26px 18px;
+  text-align: center;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.22);
+}
+.qeecko-empty-icon {
+  font-size: 34px;
+  line-height: 1;
+  margin-bottom: 10px;
+}
+.qeecko-empty-title {
+  font-size: 18px;
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+.qeecko-empty-text {
+  opacity: 0.76;
+  line-height: 1.5;
+  max-width: 520px;
+  margin: 0 auto;
+}
+.qeecko-empty-actions {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+.qeecko-empty-actions button {
+  margin-top: 0;
+  min-width: 130px;
+}
+.recommendations-strip .qeecko-empty-state,
+.creator-media-strip .qeecko-empty-state {
+  min-width: 260px;
+  width: 100%;
+  padding: 18px 14px;
+}
+.recommendations-strip .qeecko-empty-icon,
+.creator-media-strip .qeecko-empty-icon {
+  font-size: 26px;
+}
+.recommendations-strip .qeecko-empty-title,
+.creator-media-strip .qeecko-empty-title {
+  font-size: 15px;
+}
+@media (max-width: 640px) {
+  .qeecko-empty-state {
+    padding: 22px 14px;
+  }
+  .qeecko-empty-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* Compact credit purchase dropdown */
+.credit-purchase-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+
+.buy-credits-menu {
+  position: relative;
+}
+
+.buy-credits-menu summary {
+  list-style: none;
+  cursor: pointer;
+  margin: 0;
+  padding: 8px 11px;
+  border-radius: 999px;
+  background: #334155;
+  color: white;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.buy-credits-menu summary::-webkit-details-marker {
+  display: none;
+}
+
+.buy-credits-menu[open] summary {
+  background: #6366f1;
+}
+
+.buy-credits-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 1002;
+  display: grid;
+  gap: 6px;
+  min-width: 230px;
+  padding: 8px;
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 14px;
+  box-shadow: 0 14px 35px rgba(0,0,0,0.45);
+}
+
+.buy-credits-dropdown button {
+  width: 100%;
+  margin-top: 0;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  text-align: left;
+  background: #111827;
+  color: white;
+  border: 1px solid #334155;
+  border-radius: 10px;
+  padding: 9px 10px;
+  font-size: 13px;
+}
+
+.buy-credits-dropdown button:hover {
+  background: #1e293b;
+  border-color: #6366f1;
+}
+
+.buy-credits-dropdown button span {
+  opacity: 0.7;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .credit-purchase-wrap {
+    grid-column: 1 / -1;
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr auto;
+  }
+
+  .buy-credits-dropdown {
+    left: 0;
+    right: 0;
+    min-width: 0;
+    width: 100%;
+  }
+}
+
 </style>
 </head>
 
@@ -2621,7 +4983,8 @@ body.legal-mode #landingPage {
       <p>Start small, then upgrade as your creative workflow grows.</p>
       <div class="landing-price-strip">
         <div class="landing-price"><strong>25 Credits</strong><span>Starter package</span></div>
-        <div class="landing-price"><strong>100 Credits</strong><span>Popular package</span></div>
+		<div class="landing-price"><strong>75 Credits</strong><span>Popular package</span></div>
+        <div class="landing-price"><strong>200 Credits</strong><span>Popular package</span></div>
         <div class="landing-price"><strong>500 Credits</strong><span>Creator package</span></div>
       </div>
     </section>
@@ -2722,16 +5085,29 @@ body.legal-mode #landingPage {
 
           <nav class="main-nav" aria-label="Main navigation">
             <button class="nav-link-btn" onclick="goHome()">Home</button>
+            <button class="nav-link-btn" onclick="showVideoModule()">Videos</button>
             <button class="nav-link-btn" onclick="loadFollowingFeed()">Following</button>
+            <button class="nav-link-btn" onclick="loadTrending()">🔥 Trending</button>
             <button class="nav-link-btn" onclick="loadTrendingCreators()">Creators</button>
-            <button class="nav-link-btn" onclick="showAlbumsView()">Albums</button>
-            <button class="nav-link-btn" onclick="openMyProfile()">My Profile</button>
+            <button class="nav-link-btn" onclick="openCreatorStudio()">Creator Studio</button>
           </nav>
         </div>
 
         <div class="topbar-right">
-          <div class="header-credit-pill">
-            Credits: <span id="credits">...</span>
+          <div class="credit-purchase-wrap">
+            <div class="header-credit-pill">
+              Credits: <span id="credits">...</span>
+            </div>
+
+            <details class="buy-credits-menu">
+              <summary>Buy Credits ▾</summary>
+              <div class="buy-credits-dropdown">
+                <button onclick="buyCredits(25)">25 Credits <span>$9.99 CAD</span></button>
+                <button onclick="buyCredits(75)">75 Credits <span>$24.99 CAD</span></button>
+                <button onclick="buyCredits(200)">200 Credits <span>$59.99 CAD</span></button>
+                <button onclick="buyCredits(500)">500 Credits <span>$129.99 CAD</span></button>
+              </div>
+            </details>
           </div>
 
           <button class="secondary notification-top-btn" onclick="toggleNotificationsPanel()" title="Notifications">
@@ -2749,8 +5125,9 @@ body.legal-mode #landingPage {
               <button onclick="closeAccountMenu(); openCreditHistory()">Credit History</button>
               <button onclick="closeAccountMenu(); openNotifications()">Notifications</button>
               <button onclick="closeAccountMenu(); loadSavedImages()">Saved Images</button>
+              <button onclick="closeAccountMenu(); openCreatorStudio('videos')">My Videos</button>
               <button onclick="closeAccountMenu(); loadFollowingFeed()">Following Feed</button>
-              <button onclick="closeAccountMenu(); loadTrendingImages()">Trending Images</button>
+              <button onclick="closeAccountMenu(); loadTrending()">🔥 Trending</button>
               <button onclick="closeAccountMenu(); loadTrendingCreators()">Trending Creators</button>
               <button id="adminPanelBtn" style="display:none;" onclick="closeAccountMenu(); openAdminModeration()">Admin Moderation</button>
               <button onclick="closeAccountMenu(); changePassword()">Change Password</button>
@@ -2759,14 +5136,6 @@ body.legal-mode #landingPage {
           </div>
         </div>
 
-      </div>
-    </div>
-
-    <div class="compact-row billing-row">
-      <div class="pricing">
-        <button onclick="buyCredits(25)">25 Credits</button>
-        <button onclick="buyCredits(100)">100 Credits</button>
-        <button onclick="buyCredits(500)">500 Credits</button>
       </div>
     </div>
 
@@ -2917,15 +5286,108 @@ body.legal-mode #landingPage {
       <div id="adminAuditList"></div>
 
     </div>
-
 	
+    <div id="creatorStudioPanel" class="creator-studio-panel">
+      <div class="creator-studio-pro-header">
+        <div class="creator-studio-title">
+          <div class="creator-studio-kicker">✨ Creator workspace</div>
+          <h3>Creator Studio</h3>
+          <p>Manage your AI images, videos, collections, and performance from one clean workspace.</p>
+
+          <div class="creator-studio-actions">
+            <button class="primary" onclick="goHomeToImages()">🖼 Generate Image</button>
+            <button class="secondary" onclick="goHomeToVideos()">🎥 Generate Video</button>
+            <button class="secondary" onclick="creatorStudioNewCollection()">➕ Collection</button>
+            <button class="secondary" onclick="creatorStudioViewPublicProfile()">🌐 View Public Profile</button>
+          </div>
+        </div>
+
+        <button class="secondary mini-toggle creator-studio-close" onclick="closeCreatorStudio()">Close</button>
+      </div>
+
+      <div class="creator-studio-dashboard-grid">
+        <div class="creator-studio-stat"><strong id="studioImageCount">—</strong><span>Images</span><small>Total generated images</small></div>
+        <div class="creator-studio-stat"><strong id="studioVideoCount">—</strong><span>Videos</span><small>Kling videos created</small></div>
+        <div class="creator-studio-stat"><strong id="studioCollectionCount">—</strong><span>Collections</span><small>Albums and galleries</small></div>
+        <div class="creator-studio-stat"><strong id="studioTotalViews">—</strong><span>Views</span><small>Total media views</small></div>
+        <div class="creator-studio-stat"><strong id="studioTotalLikes">—</strong><span>Likes</span><small>Engagement received</small></div>
+        <div class="creator-studio-stat"><strong id="studioFollowers">—</strong><span>Followers</span><small>Creator audience</small></div>
+      </div>
+
+      <div class="creator-studio-tabs">
+        <button id="studioImagesTab" class="secondary active" onclick="switchCreatorStudioTab('images')">Images</button>
+        <button id="studioVideosTab" class="secondary" onclick="switchCreatorStudioTab('videos')">Videos</button>
+        <button id="studioCollectionsTab" class="secondary" onclick="switchCreatorStudioTab('collections')">Collections</button>
+      </div>
+
+      <div id="creatorStudioHelp" class="creator-studio-help">Images tab: manage your generated images, albums, favorites, tags, and bulk actions.</div>
+
+      <div id="creatorAnalyticsPanel" class="creator-analytics-panel creator-studio-section-card">
+        <div class="creator-studio-section-title">
+          <h4>Creator Analytics</h4>
+          <span>Performance snapshot</span>
+        </div>
+        <div id="creatorAnalyticsGrid" class="creator-analytics-grid">
+          <div class="creator-analytics-card"><strong>—</strong><span>Loading analytics...</span></div>
+        </div>
+        <div id="creatorTopMediaGrid" class="creator-top-media-grid"></div>
+      </div>
+    </div>
+
+  <div id="homeGeneratorPanel" class="home-generator-panel">
+        <div class="home-generator-top">
+          <div class="home-view-heading">
+            <strong>Home</strong>
+            <span>Create images or videos</span>
+          </div>
+          <div class="generation-switch" aria-label="Choose creation type">
+            <button id="imageModeBtn" class="secondary active" onclick="setGenerationMode('image')">🖼 Images</button>
+            <button id="videoModeBtn" class="secondary" onclick="setGenerationMode('video')">🎥 Videos</button>
+          </div>
+        </div>
+
+        <div class="home-generator-prompt-row">
+          <input id="prompt" placeholder="Describe what you want to create..." oninput="showSuggestions(); updatePromptQuality()">
+        </div>
+
+        <div class="home-generator-actions-row">
+          <select id="style" class="home-image-options">
+            <option value="">Default</option>
+            <option value="cinematic">Cinematic</option>
+            <option value="anime">Anime</option>
+            <option value="realistic">Realistic</option>
+            <option value="fantasy">Fantasy</option>
+            <option value="cyberpunk">Cyberpunk</option>
+          </select>
+
+          <select id="homeVideoDuration" class="home-video-options" onchange="syncHomeVideoDuration()">
+            <option value="5">5s - 5 credits</option>
+            <option value="10">10s - 10 credits</option>
+          </select>
+
+          <button id="generateBtn" class="primary" onclick="generateHomePrompt()">Generate Image</button>
+          <button class="secondary home-image-options" onclick="enhancePrompt()">✨ Enhance</button>
+          <button class="secondary" onclick="clearPrompt()">Clear</button>
+        </div>
+
+        <div id="suggestions" class="suggestions-box"></div>
+        <div id="homeModeHelp" class="home-mode-help">Image mode: create 4 AI images from your prompt.</div>
+   </div>	
+
+    <div id="advancedToolsPanel" class="ai-workflow-panel advanced-tools-panel">
+        <div class="ai-workflow-title compact-section-title">
+          <span>Advanced</span>
+          <button id="advancedToggleBtn" class="secondary mini-toggle" onclick="toggleAdvancedPanel()">Open</button>
+        </div>
+
+        <div id="advancedToolsBody" class="ai-workflow-body collapsed">
       <div class="ai-workflow-panel">
         <div class="ai-workflow-title compact-section-title">
           <span>Q Workflow</span>
-          <button class="secondary mini-toggle" onclick="toggleWorkflowPanel()">Show/Hide</button>
+          <button id="workflowToggleBtn" class="secondary mini-toggle" onclick="toggleWorkflowPanel()">Open</button>
         </div>
 
-        <div id="aiWorkflowBody" class="ai-workflow-body">
+        <div id="aiWorkflowBody" class="ai-workflow-body collapsed">
         <div class="ai-template-grid">
           <button onclick="applyPromptTemplate('portrait')">Portrait</button>
           <button onclick="applyPromptTemplate('product')">Product Photo</button>
@@ -3001,9 +5463,9 @@ body.legal-mode #landingPage {
       <div id="promptToolsPanel" class="collapsible-tools">
         <div class="collapsible-tools-title compact-section-title">
            <span>Prompt Tools</span>
-           <button class="secondary mini-toggle" onclick="togglePromptTools()">Show/Hide</button>
+           <button id="promptToolsToggleBtn" class="secondary mini-toggle" onclick="togglePromptTools()">Open</button>
         </div>
-        <div id="promptToolsBody">
+        <div id="promptToolsBody" class="collapsed">
   
        <div class="prompt-history-tools">
         <button class="secondary" onclick="togglePromptHistory()">Prompt History</button>
@@ -3011,18 +5473,16 @@ body.legal-mode #landingPage {
       </div>
       <div id="promptHistoryPanel" class="prompt-history-panel"></div>
 	  
-	  <input id="prompt" placeholder="Describe your image..." oninput="showSuggestions(); updatePromptQuality()">
-	  
-      <div id="suggestions" class="suggestions-box"></div>
 
       <div class="upload-panel">
         <div class="upload-row">
           <input id="uploadImageInput" type="file" accept="image/*">
           <button class="secondary" onclick="uploadUserImage()">Upload Image</button>
           <button class="primary" onclick="generateFromUploadedImage()">Generate True Variations</button>
+          <button class="secondary video-animate-btn" onclick="generateVideoFromUploadedImage()">🎥 Animate Upload</button>
           <button class="secondary" onclick="clearUploadedImage()">Clear Upload</button>
         </div>
-        <div class="modal-help">Creates closer variations by analyzing actual image pixels instead of just the URL.</div>
+        <div class="modal-help">Creates closer variations from the uploaded image, or animate it into a Kling video. Image-to-video pricing: 5s = 10 credits, 10s = 20 credits.</div>
         <div id="uploadedImagePreview" class="upload-preview">
           <img id="uploadedPreviewImg" alt="Uploaded reference">
           <div class="upload-preview-meta">
@@ -3031,48 +5491,72 @@ body.legal-mode #landingPage {
           </div>
         </div>
       </div>
-
-      <select id="style">
-        <option value="">Default</option>
-        <option value="cinematic">Cinematic</option>
-        <option value="anime">Anime</option>
-        <option value="realistic">Realistic</option>
-        <option value="fantasy">Fantasy</option>
-        <option value="cyberpunk">Cyberpunk</option>
-      </select>
-
-      <button id="generateBtn" class="primary" onclick="generate()">Generate</button>
-      <button class="secondary" onclick="enhancePrompt()">✨ Enhance</button>
-	  <button class="secondary" onclick="clearPrompt()">🧹 Clear</button>
      
      </div>	 
    </div>
 
+   </div>
+  </div>
 
-      <div id="placeholder"></div>
+  <div id="placeholder"></div>
 	  
       <div id="imageGrid" class="image-grid"></div>
+
+      <div id="videoModulePanel" class="video-module-panel">
+        <div class="compact-section-title">
+          <div>
+            <h3 style="margin:0;">🎥 Video Generation</h3>
+            <div class="video-cost-note">Launch pricing: 5-second video = 5 credits, 10-second video = 10 credits.</div>
+          </div>
+          <button id="videoModuleHideBtn" class="secondary mini-toggle" onclick="hideVideoModule()">Hide</button>
+        </div>
+
+        <div class="video-generator-grid">
+          <label>
+            <span class="video-cost-note">Video prompt</span>
+            <textarea id="videoPrompt" placeholder="Describe the video you want to create..."></textarea>
+          </label>
+
+          <label>
+            <span class="video-cost-note">Duration</span>
+            <select id="videoDuration">
+              <option value="5">5 seconds - 5 credits</option>
+              <option value="10">10 seconds - 10 credits</option>
+            </select>
+          </label>
+
+          <button id="generateVideoBtn" class="primary" onclick="generateVideo()">Generate Video</button>
+        </div>
+
+        <div id="videoStatus" class="video-status-text"></div>
+
+        <div class="compact-section-title" style="margin-top:14px;">
+          <h3 style="margin:0;">My Videos</h3>
+          <button class="secondary mini-toggle" onclick="loadMyVideos()">Refresh</button>
+        </div>
+
+        <div id="videoGallery" class="video-gallery"></div>
+      </div>
 
       <div class="gallery-panel">
         <div class="gallery-header">
           <h3>Q Creations</h3>
           <div class="gallery-toolbar">
-            <input id="gallerySearch" placeholder="Search your creations...">
+            <input id="gallerySearch" placeholder="Search...">
+            <input id="tagFilter" placeholder="Tag Search...">
             <button id="favoriteFilterBtn" class="secondary" onclick="toggleFavoriteFilter()">★ Favorites</button>
-            <button id="recentFilterBtn" class="secondary" onclick="toggleRecentFilter()">Recently Viewed</button>
+            <button id="recentFilterBtn" class="secondary" onclick="toggleRecentFilter()">🕒 Recent</button>
+            <button class="secondary" onclick="clearGalleryFilters()">Clear</button>
           </div>
-          <div class="gallery-toolbar-secondary">
+          <div class="collection-tools gallery-album-toolbar">
             <select id="collectionFilter" onchange="onCollectionFilterChange()">
-              <option value="">All Collections</option>
+              <option value="">Album</option>
             </select>
-            <input id="tagFilter" placeholder="Filter by tag/category...">
-            <button class="secondary" onclick="clearGalleryFilters()">Clear Filters</button>
-          </div>
-          <div class="collection-tools">
-            <input id="newCollectionName" placeholder="New album name...">
-            <button class="secondary" onclick="createCollection()">Create Album</button>
-            <button class="secondary" onclick="shareCurrentCollection()">Share Album</button>
-            <button class="danger" onclick="openDeleteAlbumModal()">Delete Album</button>
+            <button class="secondary" onclick="showNewAlbumInput()">New</button>
+            <input id="newCollectionName" class="album-name-input collapsed" placeholder="New album name...">
+            <button class="secondary" onclick="createCollection()">Create</button>
+            <button class="secondary" onclick="shareCurrentCollection()">Share</button>
+            <button class="danger" onclick="openDeleteAlbumModal()">Delete</button>
           </div>
 
           <div id="bulkActionsBar" class="bulk-actions-bar">
@@ -3106,8 +5590,6 @@ body.legal-mode #landingPage {
 
 </div>
 
-<!-- </div> -->
-
 <div id="loaderOverlay" class="loader-overlay">
   <div class="loader-card">
     <div class="spinner"></div>
@@ -3118,26 +5600,94 @@ body.legal-mode #landingPage {
 
 <div id="toast" class="toast"></div>
 
-<div id="imageModal" class="image-modal">
+<div id="imageModal" class="image-modal unified-viewer-modal">
 
   <span id="closeModal" class="close-modal">&times;</span>
 
-  <img id="modalImage" class="modal-image" />
+  <div class="unified-viewer-shell">
+    <div class="unified-viewer-media">
+      <img id="modalImage" class="modal-image" />
+    </div>
 
-  <button id="modalDownload" class="modal-download">
-    Download
-  </button>
+    <div id="imageViewerMeta" class="unified-viewer-meta" style="display:none;">
+      <strong>Prompt</strong>
+      <span id="imageViewerPrompt"></span>
+    </div>
+
+    <div class="image-modal-actions unified-viewer-actions">
+      <button id="modalDownload" class="modal-download">⬇ Download</button>
+      <button id="modalAnimate" class="modal-download modal-animate">🎥 Animate</button>
+    </div>
+
+    <div id="imageRecommendationsPanel" class="recommendations-panel">
+      <h4>You may also like</h4>
+      <div id="imageRecommendationsStrip" class="recommendations-strip"></div>
+    </div>
+
+    <div id="imageCreatorMediaPanel" class="recommendations-panel creator-media-panel">
+      <h4>More from this creator</h4>
+      <div id="imageCreatorMediaStrip" class="recommendations-strip"></div>
+    </div>
+  </div>
+
+</div>
+
+<div id="videoModal" class="image-modal unified-viewer-modal">
+
+  <span id="closeVideoModal" class="close-modal">&times;</span>
+
+  <div class="unified-viewer-shell">
+    <div class="unified-viewer-media">
+      <video id="modalVideo" class="modal-video" controls preload="metadata"></video>
+    </div>
+
+    <div class="video-modal-actions unified-viewer-actions">
+      <button id="modalVideoDownload" class="modal-download">⬇ Download</button>
+      <button id="modalVideoLike" class="modal-download">❤️ Like</button>
+      <button id="modalVideoCommentsToggle" class="modal-download">💬 Comment</button>
+      <button id="modalVideoShare" class="modal-download">🔗 Share</button>
+      <button id="modalVideoReport" class="modal-download report-btn">Report</button>
+      <button id="modalVideoDelete" class="modal-download danger">🗑 Delete</button>
+    </div>
+
+    <div id="videoSharePanel" class="video-share-panel">
+      <strong>Public video link</strong>
+      <div class="video-share-row">
+        <input id="videoShareLink" type="text" readonly>
+        <button class="primary" onclick="copyCurrentVideoShareLink()">Copy</button>
+      </div>
+      <div class="video-share-help">Sharing makes this video public to anyone with the link.</div>
+    </div>
+
+    <div id="videoCommentsPanel" class="video-comments-panel">
+      <div id="videoCommentsList" class="video-comments-list"></div>
+      <div class="video-comment-form">
+        <input id="videoCommentInput" type="text" maxlength="500" placeholder="Write a comment...">
+        <button class="primary" onclick="submitVideoComment()">Post</button>
+      </div>
+    </div>
+
+    <div id="videoRecommendationsPanel" class="recommendations-panel">
+      <h4>You may also like</h4>
+      <div id="videoRecommendationsStrip" class="recommendations-strip"></div>
+    </div>
+
+    <div id="videoCreatorMediaPanel" class="recommendations-panel creator-media-panel">
+      <h4>More from this creator</h4>
+      <div id="videoCreatorMediaStrip" class="recommendations-strip"></div>
+    </div>
+  </div>
 
 </div>
 
 <div id="deleteModal" class="delete-modal">
   <div class="delete-card">
-    <h3>Delete image?</h3>
+    <h3 id="deleteModalTitle">Delete image?</h3>
     <p>This action cannot be undone.</p>
 
     <div class="delete-actions">
       <button class="secondary" onclick="closeDeleteModal()">Cancel</button>
-      <button class="danger" onclick="confirmDeleteImage()">Delete</button>
+      <button id="deleteModalConfirmBtn" class="danger" onclick="confirmDeleteModal()">Delete</button>
     </div>
   </div>
 </div>
@@ -3246,7 +5796,32 @@ const imageModal = document.getElementById("imageModal");
 const modalImage = document.getElementById("modalImage");
 const closeModal = document.getElementById("closeModal");
 const modalDownload = document.getElementById("modalDownload");
+const modalAnimate = document.getElementById("modalAnimate");
+let currentModalImageItem = null;
+const imageViewerMeta = document.getElementById("imageViewerMeta");
+const imageViewerPrompt = document.getElementById("imageViewerPrompt");
+const videoModal = document.getElementById("videoModal");
+const modalVideo = document.getElementById("modalVideo");
+const closeVideoModal = document.getElementById("closeVideoModal");
+const modalVideoDownload = document.getElementById("modalVideoDownload");
+const modalVideoLike = document.getElementById("modalVideoLike");
+const modalVideoCommentsToggle = document.getElementById("modalVideoCommentsToggle");
+const modalVideoShare = document.getElementById("modalVideoShare");
+const modalVideoReport = document.getElementById("modalVideoReport");
+const modalVideoDelete = document.getElementById("modalVideoDelete");
+const videoSharePanel = document.getElementById("videoSharePanel");
+const videoShareLink = document.getElementById("videoShareLink");
+const videoCommentsPanel = document.getElementById("videoCommentsPanel");
+const videoCommentsList = document.getElementById("videoCommentsList");
+const videoCommentInput = document.getElementById("videoCommentInput");
+let currentModalVideo = null;
 const creditsEl = document.getElementById("credits");
+const videoModulePanel = document.getElementById("videoModulePanel");
+const videoPromptEl = document.getElementById("videoPrompt");
+const videoDurationEl = document.getElementById("videoDuration");
+const generateVideoBtn = document.getElementById("generateVideoBtn");
+const videoStatusEl = document.getElementById("videoStatus");
+const videoGalleryEl = document.getElementById("videoGallery");
 const gallerySearchEl = document.getElementById("gallerySearch");
 const favoriteFilterBtn = document.getElementById("favoriteFilterBtn");
 const recentFilterBtn = document.getElementById("recentFilterBtn");
@@ -3259,6 +5834,7 @@ const collectionDropZoneList = document.getElementById("collectionDropZoneList")
 const bulkActionsBar = document.getElementById("bulkActionsBar");
 const selectedCountEl = document.getElementById("selectedCount");
 const profilePanel = document.getElementById("profilePanel");
+const creatorStudioPanel = document.getElementById("creatorStudioPanel");
 const analyticsPanel = document.getElementById("analyticsPanel");
 const adminPanel = document.getElementById("adminPanel");
 const creditHistoryPanel = document.getElementById("creditHistoryPanel");
@@ -3305,6 +5881,7 @@ let galleryLoading = false;
 let galleryHasMore = true;
 let imageToDelete = null;
 let cardToDelete = null;
+let videoToDeleteId = null;
 let gallerySearchQuery = "";
 let favoritesOnly = false;
 let recentOnly = false;
@@ -3494,10 +6071,103 @@ window.clearWorkflowControls = function () {
 };
 
 
+let activeGenerationMode = "image";
+
+window.setGenerationMode = function (mode) {
+  activeGenerationMode = mode === "video" ? "video" : "image";
+
+  const panel = document.getElementById("homeGeneratorPanel");
+  const imageBtn = document.getElementById("imageModeBtn");
+  const videoBtn = document.getElementById("videoModeBtn");
+  const help = document.getElementById("homeModeHelp");
+
+  if (panel) panel.classList.toggle("video-mode", activeGenerationMode === "video");
+  if (imageBtn) imageBtn.classList.toggle("active", activeGenerationMode === "image");
+  if (videoBtn) videoBtn.classList.toggle("active", activeGenerationMode === "video");
+
+  if (promptEl) {
+    promptEl.placeholder = activeGenerationMode === "video"
+      ? "Describe the video you want to create..."
+      : "Describe what you want to create...";
+  }
+
+  if (help) {
+    help.innerText = activeGenerationMode === "video"
+      ? "Video mode: create a Kling video from your prompt."
+      : "Image mode: create 4 AI images from your prompt.";
+  }
+
+  if (generateBtn) {
+    generateBtn.innerText = activeGenerationMode === "video"
+      ? "Generate Video"
+      : "Generate Images";
+  }
+
+  // Keep the hidden video module prompt in sync with the visible Create prompt.
+  // This preserves the existing video generation flow while letting the simple
+  // Image/Video switch use one main prompt box.
+  if (activeGenerationMode === "video" && promptEl && videoPromptEl) {
+    videoPromptEl.value = promptEl.value;
+  }
+};
+
+if (promptEl && videoPromptEl) {
+  promptEl.addEventListener("input", function () {
+    videoPromptEl.value = promptEl.value;
+  });
+}
+
+window.syncHomeVideoDuration = function () {
+  const homeDuration = document.getElementById("homeVideoDuration");
+  if (homeDuration && videoDurationEl) videoDurationEl.value = homeDuration.value;
+};
+
+window.generateHomePrompt = async function () {
+  if (activeGenerationMode === "video") {
+    const homePrompt = (promptEl?.value || "").trim();
+    if (videoPromptEl) videoPromptEl.value = homePrompt;
+    syncHomeVideoDuration();
+    await generateVideo();
+    if (videoModulePanel) {
+      videoModulePanel.classList.add("show");
+    }
+    return;
+  }
+
+  await generate();
+};
+
+function fillMainCreationPromptsFromSource(item) {
+  const sourcePrompt = String(item?.prompt || "").trim();
+  if (!sourcePrompt) return;
+
+  if (promptEl) {
+    promptEl.value = sourcePrompt;
+    promptEl.dispatchEvent(new Event("input", { bubbles: true }));
+    if (typeof updatePromptQuality === "function") updatePromptQuality();
+  }
+
+  if (videoPromptEl) {
+    videoPromptEl.value = sourcePrompt;
+    videoPromptEl.dispatchEvent(new Event("input", { bubbles: true }));
+  }
+}
+
+window.toggleAdvancedPanel = function () {
+  const body = document.getElementById("advancedToolsBody");
+  const btn = document.getElementById("advancedToggleBtn");
+  if (!body) return;
+
+  body.classList.toggle("collapsed");
+  if (btn) btn.innerText = body.classList.contains("collapsed") ? "Open" : "Close";
+};
+
 window.toggleWorkflowPanel = function () {
   const body = document.getElementById("aiWorkflowBody");
+  const btn = document.getElementById("workflowToggleBtn");
   if (!body) return;
   body.classList.toggle("collapsed");
+  if (btn) btn.innerText = body.classList.contains("collapsed") ? "Open" : "Close";
 };
 
 function setPromptToolsVisible(show) {
@@ -3509,9 +6179,11 @@ function setPromptToolsVisible(show) {
 
 function togglePromptTools() {
   const body = document.getElementById("promptToolsBody");
+  const btn = document.getElementById("promptToolsToggleBtn");
   if (!body) return;
 
   body.classList.toggle("collapsed");
+  if (btn) btn.innerText = body.classList.contains("collapsed") ? "Open" : "Close";
 }
 
 function clearPrompt() {
@@ -3888,6 +6560,97 @@ const legalPages = {
   }
 };
 
+
+async function loadPublicVideo(videoId) {
+  try {
+    resetRuntimeStateForReload?.();
+    setPromptToolsVisible?.(false);
+    publicMode = true;
+
+    authDiv.style.display = "none";
+    appDiv.style.display = "block";
+    document.body.classList.add("public-mode", "public-video-view", "compact-view");
+    setPublicProfileView(true);
+
+    profilePanel?.classList.remove("show");
+    analyticsPanel?.classList.remove("show");
+    creditHistoryPanel?.classList.remove("show");
+    notificationPanel?.classList.remove("show");
+    adminPanel?.classList.remove("show");
+
+    if (imageGrid) imageGrid.innerHTML = "";
+
+    if (publicBannerEl) {
+      publicBannerEl.style.display = "block";
+      publicBannerEl.innerHTML = `<div class="public-profile-card"><h2>Shared Video</h2><p>Loading shared Qeecko video...</p></div>`;
+    }
+
+    const galleryPanel = document.querySelector(".gallery-panel");
+    if (galleryPanel) galleryPanel.style.display = "block";
+
+    if (galleryEl) {
+      galleryEl.innerHTML = `<div class="gallery-loader">Loading video...</div>`;
+    }
+
+    const res = await fetch(`/api/public/videos/${encodeURIComponent(videoId)}`);
+    const data = await res.json();
+
+    if (!res.ok || data.error || !data.video) {
+      throw new Error(data.error || "Shared video not found");
+    }
+
+    const video = data.video;
+    const creator = video.creator || {};
+    const creatorName = creator.display_name || creator.username || "Qeecko creator";
+    const shareUrl = `${window.location.origin}/video/${encodeURIComponent(video.id)}`;
+    const promptText = video.prompt || "Shared Qeecko video";
+
+    if (publicBannerEl) {
+      publicBannerEl.innerHTML = `
+        <div class="public-profile-card">
+          <h2>${escapeHtml(promptText)}</h2>
+          <p>Shared Qeecko AI video.</p>
+        </div>
+      `;
+    }
+
+    if (galleryEl) {
+      galleryEl.innerHTML = `
+        <div class="public-video-layout" style="grid-column: 1 / -1;">
+          <div class="public-video-card">
+            <video controls preload="metadata" src="${escapeHtml(video.video_url || "")}"></video>
+            <p class="public-video-meta">By ${escapeHtml(creatorName)} • ${Number(video.duration || 0)}s • ❤️ ${Number(video.like_count || 0)} • 💬 ${Number(video.comment_count || 0)}</p>
+            <div class="video-modal-actions">
+              <button class="secondary" onclick="downloadVideo('${escapeJs(video.video_url || "")}', 'qeecko-video.mp4')">⬇ Download</button>
+              <button class="secondary" onclick="openVideoModal('${escapeJs(video.video_url || "")}', '${escapeJs(video.id)}')">Open</button>
+              <button class="secondary" onclick="copyTextToClipboard('${escapeJs(shareUrl)}').then(() => showToast('Link copied'))">🔗 Copy Link</button>
+              <button class="secondary report-btn" onclick="reportVideo('${escapeJs(video.id)}')">Report</button>
+              ${creator.username ? `<button class="secondary" onclick="history.pushState({}, '', '/u/${encodeURIComponent(creator.username)}'); bootAppFromSession();">View Creator</button>` : ""}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  } catch (err) {
+    console.error(err);
+    document.body.classList.add("public-mode", "public-video-view", "compact-view");
+    setPublicProfileView?.(true);
+    if (publicBannerEl) {
+      publicBannerEl.style.display = "block";
+      publicBannerEl.innerHTML = `
+        <div class="public-profile-card">
+          <h2>Video unavailable</h2>
+          <p>${escapeHtml(err.message || "This video is private or no longer available.")}</p>
+          <button class="primary" onclick="goHome()">Back to Qeecko</button>
+        </div>
+      `;
+    }
+    if (galleryEl) galleryEl.innerHTML = "";
+  }
+}
+
 function isLegalRoute() {
   return window.location.pathname.startsWith("/legal/");
 }
@@ -3949,7 +6712,10 @@ async function goHomeFromLegal() {
 function isPublicRoute() {
   return window.location.pathname.startsWith("/u/") ||
          window.location.pathname.startsWith("/public/") ||
-         window.location.pathname.startsWith("/gallery/");
+         window.location.pathname.startsWith("/gallery/") ||
+         window.location.pathname.startsWith("/video/") ||
+         window.location.pathname.startsWith("/trending") ||
+         window.location.pathname === "/creators";
 }
 
 function isHomeRoute() {
@@ -3963,6 +6729,7 @@ function resetPublicModeState() {
   publicCollectionId = null;
   document.body.classList.remove("public-mode");
   document.body.classList.remove("public-profile-view");
+  setHomeGeneratorHidden(false);
 
   if (publicBannerEl) {
     publicBannerEl.style.display = "none";
@@ -3974,12 +6741,17 @@ function setPublicProfileView(isProfileView) {
   document.body.classList.toggle("public-profile-view", Boolean(isProfileView));
 }
 
+function setHomeGeneratorHidden(hidden) {
+  document.body.classList.toggle("hide-home-generator", Boolean(hidden));
+}
+
 function preparePanelNavigationView() {
   // Discovery/public pages hide dashboard panels through public-mode CSS.
   // Remove those mode classes before opening any Account dropdown panel.
   publicMode = false;
   document.body.classList.remove("public-mode");
   setPublicProfileView(false);
+  setHomeGeneratorHidden(false);
 
   if (publicBannerEl) {
     publicBannerEl.style.display = "none";
@@ -3987,11 +6759,15 @@ function preparePanelNavigationView() {
 }
 
 function resetPanelsForHome() {
+  document.body.classList.remove("creator-studio-view", "creator-studio-tab-images", "creator-studio-tab-videos", "creator-studio-tab-collections");
+  creatorStudioPanel?.classList.remove("show");
   ["profilePanel", "analyticsPanel", "creditHistoryPanel", "notificationPanel", "adminPanel"].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.classList.remove("show");
   });
 
+  setHomeGeneratorHidden(false);
+  hideVideoModule?.();
   closeAccountMenu?.();
 }
 
@@ -4037,6 +6813,21 @@ async function handleAppRoute() {
 
     if (parts[0] === "u" && parts[1] && typeof loadPublicCreatorProfile === "function") {
       await loadPublicCreatorProfile(decodeURIComponent(parts[1]));
+      return;
+    }
+
+    if (parts[0] === "video" && parts[1] && typeof loadPublicVideo === "function") {
+      await loadPublicVideo(decodeURIComponent(parts[1]));
+      return;
+    }
+
+    if (parts[0] === "trending" && typeof loadTrending === "function") {
+      await loadTrending(parts[1] === "videos" ? "videos" : "images");
+      return;
+    }
+
+    if (parts[0] === "creators" && typeof loadTrendingCreators === "function") {
+      await loadTrendingCreators();
       return;
     }
 
@@ -4099,13 +6890,315 @@ window.goHome = async function () {
   await bootAppFromSession();
 };
 
+
+/* Phase 3D.3 - reusable loading helpers */
+function qeeckoLoadingDots() {
+  return `<span class="qeecko-loading-dots"><span></span><span></span><span></span></span>`;
+}
+
+function qeeckoLoadingGrid(label = "Loading", count = 6) {
+  const cards = Array.from({ length: count }).map(() => `<div class="qeecko-skeleton-card"></div>`).join("");
+  return `
+    <div class="qeecko-loading-card">
+      <div class="qeecko-loading-title">${qeeckoLoadingDots()} <span>${escapeHtml(label)}</span></div>
+      <div class="qeecko-skeleton-grid">${cards}</div>
+    </div>
+  `;
+}
+
+function qeeckoLoadingInline(label = "Loading") {
+  return `
+    <div class="qeecko-loading-inline">
+      <div class="qeecko-loading-title">${qeeckoLoadingDots()} <span>${escapeHtml(label)}</span></div>
+    </div>
+  `;
+}
+
+
+
+/* Phase 3D.4 - Empty state helpers */
+function qeeckoEmptyStateHTML(options = {}) {
+  const icon = options.icon || "✨";
+  const title = options.title || "Nothing here yet";
+  const text = options.text || "Content will appear here soon.";
+  const actions = Array.isArray(options.actions) ? options.actions : [];
+  const actionHtml = actions.length ? `
+    <div class="qeecko-empty-actions">
+      ${actions.map(action => `
+        <button class="${escapeHtml(action.className || "secondary")}" onclick="${escapeHtml(action.onclick || "")}">${escapeHtml(action.label || "Continue")}</button>
+      `).join("")}
+    </div>` : "";
+
+  return `
+    <div class="qeecko-empty-state">
+      <div class="qeecko-empty-icon">${escapeHtml(icon)}</div>
+      <div class="qeecko-empty-title">${escapeHtml(title)}</div>
+      <p class="qeecko-empty-text">${escapeHtml(text)}</p>
+      ${actionHtml}
+    </div>
+  `;
+}
+
+window.goHomeToImages = async function () {
+  if (typeof goHome === "function") await goHome();
+  if (typeof setHomeMediaMode === "function") setHomeMediaMode("image");
+  const prompt = document.getElementById("prompt");
+  if (prompt) prompt.focus();
+};
+
+window.goHomeToVideos = async function () {
+  if (typeof goHome === "function") await goHome();
+  if (typeof setHomeMediaMode === "function") setHomeMediaMode("video");
+  else if (typeof showVideoModule === "function") await showVideoModule();
+  const videoPrompt = document.getElementById("videoPrompt") || document.getElementById("prompt");
+  if (videoPrompt) videoPrompt.focus();
+};
+
+window.goCreateCollection = async function () {
+  if (typeof openCreatorStudio === "function") await openCreatorStudio("collections");
+};
+
+function qeeckoAnalyticsLoading() {
+  return Array.from({ length: 6 }).map(() => `
+    <div class="creator-analytics-card loading"><strong>&nbsp;</strong><span>&nbsp;</span></div>
+  `).join("");
+}
+
+const creatorAnalyticsTopMedia = {
+  image: null,
+  video: null
+};
+
+window.openCreatorAnalyticsTopMedia = function (type) {
+  const media = creatorAnalyticsTopMedia[type];
+  if (!media) return;
+
+  if (type === "video") {
+    openVideoModal?.(media.video_url || "", media.id || "", media);
+    return;
+  }
+
+  if (media.image_url) {
+    recordMediaView?.("images", media.id, media);
+    openModal?.(media.image_url, media);
+  }
+};
+
+
+window.creatorStudioNewCollection = async function () {
+  if (typeof openCreatorStudio === "function") {
+    await openCreatorStudio("collections");
+  }
+
+  setTimeout(function () {
+    if (typeof showNewAlbumInput === "function") {
+      showNewAlbumInput();
+    }
+
+    const input = document.getElementById("newCollectionName");
+    if (input) input.focus();
+  }, 150);
+};
+
+window.creatorStudioViewPublicProfile = function () {
+  if (typeof openCreatorProfile === "function") {
+    openCreatorProfile();
+  } else {
+    showToast?.("Public profile is not available yet");
+  }
+};
+
+// Make the Phase 3D empty-state shortcuts and Creator Studio quick actions
+// use the existing Home image/video mode switch reliably.
+if (typeof window.setHomeMediaMode !== "function") {
+  window.setHomeMediaMode = function (mode) {
+    if (typeof setGenerationMode === "function") {
+      setGenerationMode(mode === "video" ? "video" : "image");
+    }
+  };
+}
+
+window.updateCreatorStudioOverview = async function () {
+  const analyticsGridLoading = document.getElementById("creatorAnalyticsGrid");
+  if (analyticsGridLoading) analyticsGridLoading.innerHTML = qeeckoAnalyticsLoading();
+  const topGridLoading = document.getElementById("creatorTopMediaGrid");
+  if (topGridLoading) topGridLoading.innerHTML = qeeckoLoadingInline("Loading top media...");
+  const formatNumber = value => Number(value || 0).toLocaleString();
+
+  function setText(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.innerText = value;
+  }
+
+  function renderTopMediaCard(type, media) {
+    const isVideo = type === "video";
+    const title = isVideo ? "Top Performing Video" : "Top Performing Image";
+    if (!media || !(media.image_url || media.video_url)) {
+      return `
+        <div class="creator-top-media-card">
+          <strong>${title}</strong>
+          <div class="creator-top-media-prompt">No ${isVideo ? "video" : "image"} performance data yet.</div>
+          <button class="secondary mini-toggle" onclick="${isVideo ? "goHomeToVideos()" : "goHomeToImages()"}">${isVideo ? "Create Video" : "Create Image"}</button>
+        </div>
+      `;
+    }
+
+    return `
+      <div class="creator-top-media-card">
+        <strong>${title}</strong>
+        <div class="creator-top-media-prompt">${escapeHtml(media.prompt || "No prompt saved")}</div>
+        <div class="creator-top-media-meta">
+          👁 ${formatNumber(media.view_count)} • ❤️ ${formatNumber(media.like_count)} • 💬 ${formatNumber(media.comment_count)}
+        </div>
+        <button class="secondary mini-toggle" onclick="openCreatorAnalyticsTopMedia('${type}')">Open</button>
+      </div>
+    `;
+  }
+
+  try {
+    const res = await authFetch("/api/analytics");
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.error || "Could not load creator analytics");
+    }
+
+    const s = data.summary || {};
+    creatorAnalyticsTopMedia.image = data.top_media?.image || null;
+    creatorAnalyticsTopMedia.video = data.top_media?.video || null;
+
+    setText("studioImageCount", formatNumber(s.total_images));
+    setText("studioVideoCount", formatNumber(s.total_videos));
+    setText("studioCollectionCount", formatNumber(s.total_collections));
+    setText("studioTotalViews", formatNumber(s.total_views));
+    setText("studioTotalLikes", formatNumber(s.likes_received));
+    setText("studioFollowers", formatNumber(s.followers));
+
+    const analyticsGrid = document.getElementById("creatorAnalyticsGrid");
+    if (analyticsGrid) {
+      const cards = [
+        [s.total_views, "👁 Views"],
+        [s.likes_received, "❤️ Likes"],
+        [s.comments_received, "💬 Comments"],
+        [s.followers, "👥 Followers"],
+        [s.following, "➡ Following"],
+        [s.profile_views, "👁 Profile Views"]
+      ];
+
+      analyticsGrid.innerHTML = cards.map(([value, label]) => `
+        <div class="creator-analytics-card"><strong>${formatNumber(value)}</strong><span>${label}</span></div>
+      `).join("");
+    }
+
+    const topGrid = document.getElementById("creatorTopMediaGrid");
+    if (topGrid) {
+      topGrid.innerHTML =
+        renderTopMediaCard("image", creatorAnalyticsTopMedia.image) +
+        renderTopMediaCard("video", creatorAnalyticsTopMedia.video);
+    }
+  } catch (err) {
+    console.warn("Creator Studio analytics skipped", err);
+
+    const analyticsGrid = document.getElementById("creatorAnalyticsGrid");
+    if (analyticsGrid) {
+      analyticsGrid.innerHTML = `
+        <div class="creator-analytics-card"><strong>—</strong><span>Analytics unavailable</span></div>
+      `;
+    }
+  }
+};
+
+window.switchCreatorStudioTab = async function (tab = "images") {
+  const safeTab = ["images", "videos", "collections"].includes(tab) ? tab : "images";
+  document.body.classList.remove("creator-studio-tab-images", "creator-studio-tab-videos", "creator-studio-tab-collections");
+  document.body.classList.add(`creator-studio-tab-${safeTab}`);
+
+  document.getElementById("studioImagesTab")?.classList.toggle("active", safeTab === "images");
+  document.getElementById("studioVideosTab")?.classList.toggle("active", safeTab === "videos");
+  document.getElementById("studioCollectionsTab")?.classList.toggle("active", safeTab === "collections");
+
+  const help = document.getElementById("creatorStudioHelp");
+  if (help) {
+    help.innerText = safeTab === "videos"
+      ? "Videos tab: review your Kling videos, open them, download, share, report, comment, or delete."
+      : safeTab === "collections"
+        ? "Collections tab: create, share, delete, reorder, and manage your albums."
+        : "Images tab: manage your generated images, albums, favorites, tags, and bulk actions.";
+  }
+
+  if (safeTab === "videos") {
+    if (videoModulePanel) {
+      videoModulePanel.classList.add("show");
+      videoModulePanel.style.display = "block";
+      const list = videoModulePanel.querySelector(".video-list, #myVideosList, #videoGallery, .gallery");
+      if (list) list.innerHTML = qeeckoLoadingGrid("Loading your videos...", 4);
+    }
+    await loadMyVideos?.();
+  } else {
+    if (videoModulePanel) {
+      videoModulePanel.classList.remove("show");
+      videoModulePanel.style.display = "";
+    }
+    const galleryPanel = document.querySelector(".gallery-panel");
+    if (galleryPanel) galleryPanel.style.display = "block";
+    if (safeTab === "collections") {
+      if (typeof collectionDropZoneList !== "undefined" && collectionDropZoneList) {
+        collectionDropZoneList.innerHTML = qeeckoLoadingGrid("Loading collections...", 4);
+      }
+      await loadCollections?.();
+    } else {
+      if (galleryEl) galleryEl.innerHTML = qeeckoLoadingGrid("Loading your images...", 6);
+      await loadCloudHistory?.(true);
+    }
+  }
+
+  await updateCreatorStudioOverview?.();
+};
+
+window.openCreatorStudio = async function (tab = "images") {
+  closeAccountMenu?.();
+  hideLegalPage?.();
+  resetPublicModeState?.();
+  preparePanelNavigationView?.();
+
+  profilePanel?.classList.remove("show");
+  analyticsPanel?.classList.remove("show");
+  creditHistoryPanel?.classList.remove("show");
+  notificationPanel?.classList.remove("show");
+  adminPanel?.classList.remove("show");
+
+  document.body.classList.add("creator-studio-view");
+  creatorStudioPanel?.classList.add("show");
+  setHomeGeneratorHidden?.(true);
+  setPromptToolsVisible?.(false);
+
+  const galleryPanel = document.querySelector(".gallery-panel");
+  if (galleryPanel) galleryPanel.style.display = "block";
+
+  await switchCreatorStudioTab(tab);
+  creatorStudioPanel?.scrollIntoView({ behavior: "smooth", block: "start" });
+};
+
+window.closeCreatorStudio = function () {
+  document.body.classList.remove("creator-studio-view", "creator-studio-tab-images", "creator-studio-tab-videos", "creator-studio-tab-collections");
+  creatorStudioPanel?.classList.remove("show");
+  setHomeGeneratorHidden?.(false);
+  setPromptToolsVisible?.(true);
+  hideVideoModule?.();
+};
+
 window.showAlbumsView = function () {
+  setHomeGeneratorHidden(false);
   setPublicProfileView(false);
   publicBannerEl.style.display = "none";
   document.querySelector(".gallery-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
 };
 
 window.openMyProfile = async function () {
+  await openCreatorStudio("images");
+};
+
+window.openMyPublicProfile = async function () {
   try {
     const res = await authFetch("/api/me");
     const data = await res.json();
@@ -4458,7 +7551,14 @@ function getInitialSocialForImage(item, social = null) {
     likedByMe: Boolean(social?.likedByMe),
     savedByMe: Boolean(social?.savedByMe ?? item?.saved_by_me ?? item?.savedByMe),
     comments,
-    commentCount
+    commentCount,
+    views: Number(
+      social?.views ??
+      item?.views ??
+      item?.view_count ??
+      item?.viewCount ??
+      0
+    )
   };
 }
 
@@ -4477,6 +7577,7 @@ function renderPublicSocialBlock(item, social = null) {
         <button class="comment-toggle-btn" onclick="toggleCommentsBox('${item.id}')">
           💬 <span id="commentCount-${item.id}">${initialSocial.commentCount || 0}</span>
         </button>
+        <span class="view-pill" title="Views">👁 <span id="imageViewCount-${item.id}">${Number(initialSocial.views || 0).toLocaleString()}</span></span>
         <button id="saveBtn-${item.id}" class="save-btn ${initialSocial.savedByMe ? "active" : ""}" onclick="toggleSaveImage('${item.id}')">
           ${initialSocial.savedByMe ? "Saved" : "Save"}
         </button>
@@ -4666,6 +7767,43 @@ window.reportImage = async function (imageId) {
 };
 
 
+
+
+window.reportVideo = async function (videoId) {
+  try {
+    const headers = {
+      "Content-Type": "application/json",
+      ...(await getOptionalAuthHeader())
+    };
+
+    if (!headers.Authorization) {
+      showToast("Login to report videos");
+      return;
+    }
+
+    if (!videoId) {
+      showToast("Video not found");
+      return;
+    }
+
+    const reason = prompt("Why are you reporting this video?", "inappropriate");
+    if (!reason) return;
+
+    const res = await fetch(`/api/videos/${encodeURIComponent(videoId)}/report`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ reason })
+    });
+
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) return showToast(data.error || "Could not submit video report");
+
+    showToast("Video report submitted");
+  } catch (err) {
+    console.error(err);
+    showToast("Could not submit video report");
+  }
+};
 
 window.reportCreator = async function (creatorId, username = "") {
   try {
@@ -4957,8 +8095,21 @@ document.addEventListener("click", function (e) {
   const menu = document.getElementById("accountDropdown");
   const accountMenu = document.querySelector(".account-menu");
 
-  if (!accountMenu.contains(e.target)) {
+  if (menu && accountMenu && !accountMenu.contains(e.target)) {
     menu.style.display = "none";
+  }
+
+  const moreActionButton = e.target.closest(".gallery-more-dropdown button");
+  if (moreActionButton) {
+    const openMenu = moreActionButton.closest(".gallery-more-menu");
+    const parentCard = moreActionButton.closest(".gallery-card, .video-card");
+    if (openMenu) openMenu.open = false;
+    if (parentCard) parentCard.classList.remove("more-menu-open");
+    return;
+  }
+
+  if (!e.target.closest(".gallery-more-menu")) {
+    closeGalleryMoreMenus();
   }
 });
 
@@ -5142,39 +8293,321 @@ window.buyCredits = async function (credits) {
   }
 };
 
-function openModal(imgSrc) {
+
+function getRecommendationElements(type) {
+  const isVideo = type === "video" || type === "videos";
+  return {
+    panel: document.getElementById(isVideo ? "videoRecommendationsPanel" : "imageRecommendationsPanel"),
+    strip: document.getElementById(isVideo ? "videoRecommendationsStrip" : "imageRecommendationsStrip")
+  };
+}
+
+function clearRecommendations(type) {
+  const { panel, strip } = getRecommendationElements(type);
+  if (strip) strip.innerHTML = "";
+  if (panel) panel.classList.remove("show");
+}
+
+function getCreatorMediaElements(type) {
+  const isVideo = type === "video" || type === "videos";
+  return {
+    panel: document.getElementById(isVideo ? "videoCreatorMediaPanel" : "imageCreatorMediaPanel"),
+    strip: document.getElementById(isVideo ? "videoCreatorMediaStrip" : "imageCreatorMediaStrip")
+  };
+}
+
+function clearCreatorMedia(type) {
+  const { panel, strip } = getCreatorMediaElements(type);
+  if (strip) strip.innerHTML = "";
+  if (panel) panel.classList.remove("show");
+}
+
+function renderRecommendationCard(item) {
+  const type = item.type === "video" ? "video" : "image";
+  const mediaUrl = item.url || item.image_url || item.video_url || "";
+  const thumbUrl = item.thumbnail_url || item.thumbnail || mediaUrl;
+  const promptText = item.prompt || "Untitled";
+  const likes = Number(item.like_count || 0);
+  const comments = Number(item.comment_count || 0);
+  const views = Number(item.view_count || item.views || 0);
+
+  const card = document.createElement("div");
+  card.className = "recommendation-card";
+  card.title = promptText;
+
+  const thumb = document.createElement("div");
+  thumb.className = "recommendation-thumb";
+
+  if (type === "video") {
+    const video = document.createElement("video");
+    video.muted = true;
+    video.playsInline = true;
+    video.preload = "metadata";
+    video.src = mediaUrl;
+    thumb.appendChild(video);
+
+    const play = document.createElement("div");
+    play.className = "recommendation-play";
+    play.innerText = "▶";
+    thumb.appendChild(play);
+  } else {
+    const img = document.createElement("img");
+    img.src = thumbUrl;
+    img.loading = "lazy";
+    img.decoding = "async";
+    img.alt = promptText;
+    thumb.appendChild(img);
+  }
+
+  const badge = document.createElement("span");
+  badge.className = "recommendation-type";
+  badge.innerText = type === "video" ? "VIDEO" : "IMAGE";
+  thumb.appendChild(badge);
+
+  const body = document.createElement("div");
+  body.className = "recommendation-body";
+
+  const prompt = document.createElement("div");
+  prompt.className = "recommendation-prompt";
+  prompt.innerText = promptText;
+
+  const stats = document.createElement("div");
+  stats.className = "recommendation-stats";
+  stats.innerText = `❤️ ${likes.toLocaleString()} • 💬 ${comments.toLocaleString()} • 👁 ${views.toLocaleString()}`;
+
+  body.appendChild(prompt);
+  body.appendChild(stats);
+  card.appendChild(thumb);
+  card.appendChild(body);
+
+  card.onclick = () => {
+    if (type === "video") {
+      if (typeof closeImageModal === "function") {
+        closeImageModal();
+      }
+
+      openVideoModal(mediaUrl, item.id, {
+        ...item,
+        video_url: mediaUrl
+      });
+
+      requestAnimationFrame(() => {
+        const modal = document.getElementById("videoModal");
+        if (modal) modal.scrollTo({ top: 0, behavior: "smooth" });
+      });
+      return;
+    }
+
+    const imageItem = {
+      ...item,
+      image_url: mediaUrl,
+      view_count: views
+    };
+
+    if (typeof closeVideoModalPlayer === "function") {
+      closeVideoModalPlayer();
+    }
+
+    recordMediaView("images", item.id, imageItem);
+    openModal(mediaUrl, imageItem);
+
+    requestAnimationFrame(() => {
+      const modal = document.getElementById("imageModal");
+      if (modal) modal.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  };
+
+  return card;
+}
+
+async function loadMoreLikeThis(type, id) {
+  if (!id) {
+    clearRecommendations(type);
+    return;
+  }
+
+  const safeType = type === "video" || type === "videos" ? "video" : "image";
+  const { panel, strip } = getRecommendationElements(safeType);
+  if (!panel || !strip) return;
+
+  try {
+    strip.innerHTML = qeeckoLoadingInline("Loading recommendations...");
+    panel.classList.add("show");
+
+    const res = await authFetch(`/api/recommendations/${safeType}/${encodeURIComponent(id)}`);
+    const data = await res.json();
+
+    if (!res.ok || data.error) {
+      throw new Error(data.error || "Could not load recommendations");
+    }
+
+    const items = data.recommendations || [];
+    strip.innerHTML = "";
+
+    if (!items.length) {
+      strip.innerHTML = qeeckoEmptyStateHTML({
+        icon: "✨",
+        title: "Nothing to recommend yet",
+        text: "Interact with more images and videos to improve recommendations.",
+        actions: [{ label: "Browse Trending", className: "primary", onclick: "loadTrending('images')" }]
+      });
+      panel.classList.add("show");
+      return;
+    }
+
+    items.forEach(item => {
+      strip.appendChild(renderRecommendationCard(item));
+    });
+  } catch (err) {
+    console.warn("Recommendations warning:", err);
+    clearRecommendations(safeType);
+  }
+}
+
+async function loadMoreFromCreator(type, id) {
+  if (!id) {
+    clearCreatorMedia(type);
+    return;
+  }
+
+  const safeType = type === "video" || type === "videos" ? "video" : "image";
+  const { panel, strip } = getCreatorMediaElements(safeType);
+  if (!panel || !strip) return;
+
+  try {
+    strip.innerHTML = qeeckoLoadingInline("Loading creator media...");
+    panel.classList.add("show");
+
+    const res = await authFetch(`/api/creator-media/${safeType}/${encodeURIComponent(id)}`);
+    const data = await res.json();
+
+    if (!res.ok || data.error) {
+      throw new Error(data.error || "Could not load creator media");
+    }
+
+    const items = data.media || [];
+    strip.innerHTML = "";
+
+    if (!items.length) {
+      strip.innerHTML = qeeckoEmptyStateHTML({
+        icon: "👤",
+        title: "No more from this creator yet",
+        text: "This creator's other public media will appear here.",
+        actions: [{ label: "Discover Creators", className: "primary", onclick: "loadTrendingCreators()" }]
+      });
+      panel.classList.add("show");
+      return;
+    }
+
+    items.forEach(item => {
+      strip.appendChild(renderRecommendationCard(item));
+    });
+  } catch (err) {
+    console.warn("Creator media warning:", err);
+    clearCreatorMedia(safeType);
+  }
+}
+
+
+function closeImageModal() {
+  imageModal.style.display = "none";
+  if (imageViewerMeta) imageViewerMeta.style.display = "none";
+  if (imageViewerPrompt) imageViewerPrompt.textContent = "";
+  clearRecommendations("image");
+  clearCreatorMedia("image");
+  currentModalImageItem = null;
+}
+
+function openModal(imgSrc, item = null) {
+
+  currentModalImageItem = item || {
+    image_url: imgSrc,
+    prompt: promptEl?.value || "Animate this image naturally with cinematic motion."
+  };
 
   modalImage.src = imgSrc;
 
+  const viewerPrompt = String(currentModalImageItem?.prompt || "").trim();
+  if (imageViewerMeta && imageViewerPrompt) {
+    imageViewerPrompt.textContent = viewerPrompt;
+    imageViewerMeta.style.display = viewerPrompt ? "block" : "none";
+  }
+
   imageModal.style.display = "flex";
+  requestAnimationFrame(() => imageModal.scrollTo({ top: 0, behavior: "auto" }));
+
+  if (currentModalImageItem?.id) {
+    loadMoreLikeThis("image", currentModalImageItem.id);
+    loadMoreFromCreator("image", currentModalImageItem.id);
+  } else {
+    clearRecommendations("image");
+    clearCreatorMedia("image");
+  }
 
   modalDownload.onclick = () => downloadImage(imgSrc, "qeecko-full.png");
+
+  if (modalAnimate) {
+    modalAnimate.style.display = imgSrc ? "inline-block" : "none";
+    modalAnimate.onclick = async () => {
+      const itemToAnimate = currentModalImageItem || { image_url: imgSrc };
+      closeImageModal();
+      await generateVideoFromModalImage(itemToAnimate);
+    };
+  }
 }
 
-closeModal.onclick = () => {
-
-  imageModal.style.display = "none";
-};
+closeModal.onclick = closeImageModal;
 
 imageModal.onclick = (e) => {
 
   if (e.target === imageModal) {
 
-    imageModal.style.display = "none";
+    closeImageModal();
   }
 };
 
 
+function setDeleteModalCopy(title) {
+  const titleEl = document.getElementById("deleteModalTitle");
+  if (titleEl) titleEl.textContent = title || "Delete item?";
+}
+
 function openDeleteModal(item, card) {
   imageToDelete = item;
   cardToDelete = card;
+  videoToDeleteId = null;
+  setDeleteModalCopy("Delete image?");
   document.getElementById("deleteModal").style.display = "flex";
 }
+
+window.openVideoDeleteModal = function (videoId) {
+  if (!videoId) {
+    showToast("Video not found");
+    return;
+  }
+
+  videoToDeleteId = videoId;
+  imageToDelete = null;
+  cardToDelete = null;
+  setDeleteModalCopy("Delete video?");
+  document.getElementById("deleteModal").style.display = "flex";
+};
 
 window.closeDeleteModal = function () {
   imageToDelete = null;
   cardToDelete = null;
+  videoToDeleteId = null;
+  setDeleteModalCopy("Delete image?");
   document.getElementById("deleteModal").style.display = "none";
+};
+
+window.confirmDeleteModal = async function () {
+  if (videoToDeleteId) {
+    await performVideoDeleteById(videoToDeleteId);
+    return;
+  }
+
+  await confirmDeleteImage();
 };
 
 window.confirmDeleteImage = async function () {
@@ -5392,6 +8825,919 @@ const ok = await hasCredits();
 };
 
 
+
+// =========================
+// VIDEO GENERATION - KLING PHASE 1
+// =========================
+const VIDEO_POLL_INTERVAL_MS = 8000;
+const VIDEO_MAX_POLLS = 75;
+
+function setVideoStatus(message) {
+  if (videoStatusEl) videoStatusEl.innerText = message || "";
+}
+
+function setVideoGenerating(isGenerating) {
+  if (!generateVideoBtn) return;
+  generateVideoBtn.disabled = Boolean(isGenerating);
+  generateVideoBtn.classList.toggle("generate-loading", Boolean(isGenerating));
+  generateVideoBtn.innerText = isGenerating ? "Generating..." : "Generate Video";
+}
+
+window.showVideoModule = async function () {
+  preparePanelNavigationView?.();
+  resetPanelsForHome?.();
+
+  if (videoModulePanel) {
+    videoModulePanel.classList.add("show");
+    videoModulePanel.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  await loadMyVideos();
+};
+
+window.hideVideoModule = function () {
+  if (videoModulePanel) videoModulePanel.classList.remove("show");
+};
+
+function getVideoCreditCost(duration) {
+  return Number(duration) === 10 ? 10 : 5;
+}
+
+function normalizeVideoStatus(status) {
+  return String(status || "").toLowerCase();
+}
+
+function isVideoDone(status) {
+  return ["completed", "complete", "succeeded", "success", "finished"].includes(normalizeVideoStatus(status));
+}
+
+function isVideoFailed(status) {
+  return ["failed", "error", "cancelled", "canceled"].includes(normalizeVideoStatus(status));
+}
+
+function formatVideoDate(value) {
+  try {
+    return value ? new Date(value).toLocaleString() : "";
+  } catch (_) {
+    return "";
+  }
+}
+
+function renderVideoCard(video) {
+  const card = document.createElement("div");
+  card.className = "video-card media-card media-card-video";
+  card.dataset.videoId = video.id || "";
+
+  const status = normalizeVideoStatus(video.status);
+  const prompt = video.prompt || "Untitled video";
+  const duration = video.duration ? `${video.duration}s` : "";
+  const credits = Number(video.credits_used || 0);
+  const created = formatVideoDate(video.created_at);
+  const generationType = video.generation_type === "image_to_video" ? "🖼️→🎬 Image Video" : "🎬 Text Video";
+  const shareUrl = video.id ? buildVideoShareUrl(video.id) : "";
+
+  if (video.video_url) {
+    card.innerHTML = `
+      <div class="media-thumb video-thumb" onclick="openVideoModal('${escapeJs(video.video_url)}', '${escapeJs(video.id)}')">
+        <video muted playsinline preload="metadata" src="${escapeHtml(video.video_url)}"></video>
+        <span class="media-type-badge">VIDEO</span>
+        <div class="video-play-overlay"><span>▶</span></div>
+      </div>
+      <div class="video-card-content">
+        <div class="video-card-title media-card-title">${escapeHtml(prompt)}</div>
+        <div class="video-card-meta media-card-meta">${escapeHtml(generationType)} • ${escapeHtml(duration)} • ${credits} credits${created ? " • " + escapeHtml(created) : ""}</div>
+        <div class="video-card-meta media-card-meta">❤️ ${Number(video.like_count || 0)} • 💬 ${Number(video.comment_count || 0)} • 👁 <span id="videoViewCount-${escapeHtml(video.id || "")}">${Number(video.view_count || 0).toLocaleString()}</span></div>
+        <div class="video-card-actions compact-card-actions media-card-actions">
+          <button class="secondary media-card-open-btn" onclick="openVideoModal('${escapeJs(video.video_url)}', '${escapeJs(video.id)}')">Open</button>
+          <button class="secondary video-card-like${video.liked ? " active" : ""}" title="Like" onclick="toggleVideoLikeById('${escapeJs(video.id)}', this)">♥</button>
+          <button class="secondary" title="Comments" onclick="openVideoCommentsFromCard('${escapeJs(video.video_url)}', '${escapeJs(video.id)}')">💬</button>
+          <details class="gallery-more-menu">
+            <summary title="More actions">⋮</summary>
+            <div class="gallery-more-dropdown">
+              <button class="secondary" onclick="downloadVideo('${escapeJs(video.video_url)}', 'qeecko-video.mp4')">Download</button>
+              <button class="secondary" onclick="shareVideoById('${escapeJs(video.id)}')">Share</button>
+              <button class="secondary report-btn" onclick="reportVideo('${escapeJs(video.id)}')">Report</button>
+              <button class="secondary" onclick="copyTextToClipboard('${escapeJs(shareUrl)}').then(() => showToast('Link copied'))">Copy Link</button>
+              <button class="danger" onclick="deleteVideoById('${escapeJs(video.id)}')">Delete</button>
+            </div>
+          </details>
+        </div>
+      </div>
+    `;
+  } else {
+    const label = isVideoFailed(status)
+      ? (video.error_message || "Video generation failed")
+      : "Video is processing. Refresh status in a moment.";
+
+    card.innerHTML = `
+      <div class="video-processing">${escapeHtml(label)}</div>
+      <div class="video-card-content">
+        <div class="video-card-title media-card-title">${escapeHtml(prompt)}</div>
+        <div class="video-card-meta media-card-meta">${escapeHtml(generationType)} • ${escapeHtml(duration)} • ${credits} credits • ${escapeHtml(video.status || "processing")}</div>
+        <div class="video-card-actions compact-card-actions media-card-actions">
+          <button class="secondary" onclick="checkVideoStatus('${escapeJs(video.id)}', true)">Check</button>
+          <button class="secondary" disabled>♥</button>
+          <button class="secondary" disabled>💬</button>
+          <details class="gallery-more-menu">
+            <summary title="More actions">⋮</summary>
+            <div class="gallery-more-dropdown">
+              <button class="danger" onclick="deleteVideoById('${escapeJs(video.id)}')">Delete</button>
+            </div>
+          </details>
+        </div>
+      </div>
+    `;
+  }
+
+  card.querySelectorAll(".gallery-more-menu").forEach(menu => {
+    menu.addEventListener("toggle", () => {
+      card.classList.toggle("more-menu-open", menu.open);
+      if (menu.open) {
+        closeGalleryMoreMenus(menu);
+      }
+    });
+  });
+
+  card.querySelectorAll(".gallery-more-dropdown").forEach(dropdown => {
+    dropdown.addEventListener("click", () => {
+      const menu = dropdown.closest(".gallery-more-menu");
+      if (menu) menu.open = false;
+      card.classList.remove("more-menu-open");
+    });
+  });
+
+  return card;
+}
+
+function renderVideoGallery(videos = []) {
+  if (!videoGalleryEl) return;
+
+  if (!videos.length) {
+    videoGalleryEl.innerHTML = `
+      <div class="gallery-empty">
+        <strong>No videos yet</strong>
+        <p>Generate your first Kling video and it will appear here.</p>
+      </div>
+    `;
+    return;
+  }
+
+  videoGalleryEl.innerHTML = "";
+  videos.forEach(video => videoGalleryEl.appendChild(renderVideoCard(video)));
+}
+
+window.loadMyVideos = async function () {
+  if (!videoGalleryEl) return;
+
+  try {
+    videoGalleryEl.innerHTML = `<div class="gallery-loader">Loading videos...</div>`;
+    const res = await authFetch("/api/my-videos");
+    const data = await res.json();
+
+    if (!res.ok || data.error) {
+      throw new Error(data.error || "Could not load videos");
+    }
+
+    renderVideoGallery(data.videos || []);
+  } catch (err) {
+    console.error(err);
+    videoGalleryEl.innerHTML = `
+      <div class="gallery-empty">
+        <strong>Could not load videos</strong>
+        <p>${escapeHtml(err.message || "Please try again.")}</p>
+      </div>
+    `;
+  }
+};
+
+
+function getImageVideoCreditCost(duration) {
+  return Number(duration) === 10 ? 20 : 10;
+}
+
+async function startImageToVideo({ imageUrl, prompt, duration }) {
+  if (!imageUrl) {
+    showToast("Select or upload an image first");
+    return;
+  }
+
+  const safeDuration = Number(duration || videoDurationEl?.value || 5);
+  const creditsNeeded = getImageVideoCreditCost(safeDuration);
+  const currentCredits = Number((creditsEl?.innerText || "0").replace(/[^0-9.-]/g, ""));
+
+  if (Number.isFinite(currentCredits) && currentCredits < creditsNeeded) {
+    showToast(`You need ${creditsNeeded} credits for image-to-video`);
+    return;
+  }
+
+  const finalPrompt = String(prompt || "Animate this image naturally with cinematic motion.").trim();
+
+  setVideoGenerating(true);
+  setVideoStatus(`Submitting ${safeDuration}-second image-to-video job...`);
+
+  const res = await authFetch("/api/generate-image-video", {
+    method: "POST",
+    body: JSON.stringify({
+      image_url: imageUrl,
+      prompt: finalPrompt,
+      duration: safeDuration
+    })
+  });
+
+  const data = await res.json();
+
+  if (!res.ok || data.error) {
+    throw new Error(data.error || "Image-to-video generation failed");
+  }
+
+  await loadCredits();
+  await loadMyVideos();
+
+  const video = data.video || data;
+  if (video?.id) {
+    pollVideoStatus(video.id);
+  }
+
+  setVideoStatus("Image-to-video is processing. This can take a few minutes.");
+  showToast("Image-to-video job started 🎥");
+}
+
+window.generateVideoFromUploadedImage = async function () {
+  try {
+    if (!uploadedReferenceImage?.image_url) {
+      showToast("Upload or select an image first");
+      return;
+    }
+
+    resetPublicModeState?.();
+    if (typeof showVideoModule === "function") {
+      await showVideoModule();
+    }
+
+    const basePrompt = (videoPromptEl?.value || promptEl?.value || uploadedReferenceImage.prompt || "Animate this image naturally with cinematic motion.").trim();
+    const duration = Number(videoDurationEl?.value || 5);
+
+    await startImageToVideo({
+      imageUrl: uploadedReferenceImage.image_url,
+      prompt: basePrompt,
+      duration
+    });
+  } catch (err) {
+    console.error(err);
+    showToast(err.message || "Image-to-video failed");
+    setVideoStatus(err.message || "Image-to-video failed");
+  } finally {
+    setVideoGenerating(false);
+  }
+};
+
+window.generateVideoFromModalImage = async function (item) {
+  try {
+    const imageUrl = item?.image_url || item?.imageUrl || modalImage?.src;
+    if (!imageUrl) {
+      showToast("Image not found");
+      return;
+    }
+
+    uploadedReferenceImage = {
+      ...(item || {}),
+      image_url: imageUrl,
+      prompt: item?.prompt || promptEl?.value || "Animate this image naturally with cinematic motion."
+    };
+
+    renderUploadedImagePreview();
+
+    resetPublicModeState?.();
+    if (typeof showVideoModule === "function") {
+      await showVideoModule();
+    }
+
+    const basePrompt = (videoPromptEl?.value || uploadedReferenceImage.prompt || "Animate this image naturally with cinematic motion.").trim();
+    const duration = Number(videoDurationEl?.value || 5);
+
+    await startImageToVideo({
+      imageUrl,
+      prompt: basePrompt,
+      duration
+    });
+  } catch (err) {
+    console.error(err);
+    showToast(err.message || "Image-to-video failed");
+    setVideoStatus(err.message || "Image-to-video failed");
+  } finally {
+    setVideoGenerating(false);
+  }
+};
+
+window.generateVideoFromGalleryImage = async function (imageId) {
+  try {
+    const item = cloudImages.find(img => String(img.id) === String(imageId));
+    if (!item?.image_url) {
+      showToast("Image not found");
+      return;
+    }
+
+    uploadedReferenceImage = item;
+    renderUploadedImagePreview();
+
+    resetPublicModeState?.();
+    if (typeof showVideoModule === "function") {
+      await showVideoModule();
+    }
+
+    const basePrompt = (videoPromptEl?.value || item.prompt || "Animate this image naturally with cinematic motion.").trim();
+    const duration = Number(videoDurationEl?.value || 5);
+
+    await startImageToVideo({
+      imageUrl: item.image_url,
+      prompt: basePrompt,
+      duration
+    });
+  } catch (err) {
+    console.error(err);
+    showToast(err.message || "Image-to-video failed");
+    setVideoStatus(err.message || "Image-to-video failed");
+  } finally {
+    setVideoGenerating(false);
+  }
+};
+
+window.generateVideo = async function () {
+  try {
+    resetPublicModeState?.();
+
+    const prompt = (videoPromptEl?.value || "").trim();
+    const duration = Number(videoDurationEl?.value || 5);
+    const creditsNeeded = getVideoCreditCost(duration);
+
+    if (!prompt) {
+      showToast("Enter a video prompt");
+      return;
+    }
+
+    const currentCredits = Number((creditsEl?.innerText || "0").replace(/[^0-9.-]/g, ""));
+    if (Number.isFinite(currentCredits) && currentCredits < creditsNeeded) {
+      showToast(`You need ${creditsNeeded} credits for this video`);
+      return;
+    }
+
+    setVideoGenerating(true);
+    setVideoStatus(`Submitting ${duration}-second Kling video job...`);
+
+    const res = await authFetch("/api/generate-video", {
+      method: "POST",
+      body: JSON.stringify({ prompt, duration })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok || data.error) {
+      throw new Error(data.error || "Video generation failed");
+    }
+
+    await loadCredits();
+
+    const video = data.video || data;
+    const videoId = video.id;
+
+    showToast("Video job started 🎥");
+    setVideoStatus("Video is processing. This can take a few minutes.");
+
+    await loadMyVideos();
+
+    if (videoId) {
+      pollVideoStatus(videoId);
+    }
+  } catch (err) {
+    console.error(err);
+    showToast(err.message || "Video generation failed");
+    setVideoStatus(err.message || "Video generation failed");
+  } finally {
+    setVideoGenerating(false);
+  }
+};
+
+window.checkVideoStatus = async function (videoId, showMessage = false) {
+  if (!videoId) return null;
+
+  try {
+    if (showMessage) setVideoStatus("Checking video status...");
+
+    const res = await authFetch(`/api/video-status/${encodeURIComponent(videoId)}`);
+    const data = await res.json();
+
+    if (!res.ok || data.error) {
+      throw new Error(data.error || "Could not check video status");
+    }
+
+    const video = data.video || data;
+
+    if (isVideoDone(video.status) || video.video_url) {
+      setVideoStatus("Video ready.");
+      showToast("Video ready 🎬");
+      await loadCredits();
+      await loadMyVideos();
+    } else if (isVideoFailed(video.status)) {
+      setVideoStatus(video.error_message || "Video generation failed.");
+      showToast("Video generation failed");
+      await loadCredits();
+      await loadMyVideos();
+    } else if (showMessage) {
+      setVideoStatus("Still processing. Check again shortly.");
+    }
+
+    return video;
+  } catch (err) {
+    console.error(err);
+    if (showMessage) {
+      setVideoStatus(err.message || "Could not check video status");
+      showToast("Could not check video status");
+    }
+    return null;
+  }
+};
+
+async function pollVideoStatus(videoId, attempt = 0) {
+  if (!videoId || attempt >= VIDEO_MAX_POLLS) {
+    setVideoStatus("Video is still processing. Use Refresh or Check Status later.");
+    return;
+  }
+
+  setTimeout(async () => {
+    const video = await checkVideoStatus(videoId, false);
+
+    if (!video) {
+      pollVideoStatus(videoId, attempt + 1);
+      return;
+    }
+
+    if (isVideoDone(video.status) || video.video_url || isVideoFailed(video.status)) {
+      return;
+    }
+
+    setVideoStatus(`Processing video... status: ${video.status || "processing"}`);
+    pollVideoStatus(videoId, attempt + 1);
+  }, VIDEO_POLL_INTERVAL_MS);
+}
+
+
+function renderVideoComments(comments = []) {
+  if (!videoCommentsList) return;
+
+  if (!comments.length) {
+    videoCommentsList.innerHTML = `<div class="video-comment-item">No comments yet.</div>`;
+    return;
+  }
+
+  videoCommentsList.innerHTML = comments.map(comment => `
+    <div class="video-comment-item">
+      <strong>${escapeHtml(comment.display_name || "Creator")}</strong>
+      <span>${escapeHtml(comment.comment || "")}</span>
+    </div>
+  `).join("");
+}
+
+async function refreshVideoEngagement(videoId) {
+  if (!videoId) return;
+
+  try {
+    const res = await authFetch(`/api/videos/${encodeURIComponent(videoId)}/comments`);
+    const data = await res.json();
+
+    if (!res.ok || data.error) {
+      throw new Error(data.error || "Could not load video comments");
+    }
+
+    if (modalVideoLike) {
+      modalVideoLike.innerText = `❤️ Like (${Number(data.likes || 0)})`;
+      modalVideoLike.classList.toggle("video-like-active", Boolean(data.liked));
+    }
+
+    if (modalVideoCommentsToggle) {
+      modalVideoCommentsToggle.innerText = `💬 Comment (${Number(data.comment_count || 0)})`;
+    }
+
+    renderVideoComments(data.comments || []);
+  } catch (err) {
+    console.error(err);
+    if (videoCommentsList) {
+      videoCommentsList.innerHTML = `<div class="video-comment-item">Could not load comments.</div>`;
+    }
+  }
+}
+
+window.openVideoModal = function (videoUrl, videoId = null, videoItem = null) {
+  if (!videoUrl || !videoModal || !modalVideo) return;
+
+  currentModalVideo = {
+    id: videoId,
+    url: videoUrl
+  };
+
+  if (videoId) {
+    recordMediaView("videos", videoId, videoItem || null);
+  }
+
+  modalVideo.pause();
+  modalVideo.removeAttribute("src");
+  modalVideo.load();
+
+  modalVideo.src = videoUrl;
+  videoModal.style.display = "flex";
+
+  if (videoCommentsPanel) {
+    videoCommentsPanel.classList.remove("show");
+  }
+
+  if (videoCommentInput) {
+    videoCommentInput.value = "";
+  }
+
+  if (modalVideoDownload) {
+    modalVideoDownload.onclick = () => downloadVideo(videoUrl, "qeecko-video.mp4");
+  }
+
+  if (modalVideoLike) {
+    modalVideoLike.onclick = () => toggleVideoLike();
+  }
+
+  if (modalVideoCommentsToggle) {
+    modalVideoCommentsToggle.onclick = () => toggleVideoComments();
+  }
+
+  if (modalVideoShare) {
+    modalVideoShare.onclick = () => shareCurrentVideo();
+    modalVideoShare.style.display = videoId ? "inline-block" : "none";
+  }
+
+  if (videoSharePanel) {
+    videoSharePanel.classList.remove("show");
+  }
+
+  if (videoShareLink) {
+    videoShareLink.value = "";
+  }
+
+  if (modalVideoReport) {
+    modalVideoReport.onclick = () => reportVideo(videoId);
+    modalVideoReport.style.display = videoId ? "inline-block" : "none";
+  }
+
+  if (modalVideoDelete) {
+    modalVideoDelete.onclick = () => deleteCurrentVideo();
+    modalVideoDelete.style.display = videoId ? "inline-block" : "none";
+  }
+
+  if (videoId) {
+    refreshVideoEngagement(videoId);
+    loadMoreLikeThis("video", videoId);
+    loadMoreFromCreator("video", videoId);
+  } else {
+    clearRecommendations("video");
+    clearCreatorMedia("video");
+  }
+};
+
+
+function buildVideoShareUrl(videoId) {
+  return `${window.location.origin}/video/${encodeURIComponent(videoId)}`;
+}
+
+async function copyTextToClipboard(value) {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(value);
+    return;
+  }
+
+  const temp = document.createElement("textarea");
+  temp.value = value;
+  temp.style.position = "fixed";
+  temp.style.left = "-9999px";
+  document.body.appendChild(temp);
+  temp.focus();
+  temp.select();
+  document.execCommand("copy");
+  temp.remove();
+}
+
+window.shareVideoById = async function (videoId) {
+  if (!videoId) {
+    showToast("Video not found");
+    return null;
+  }
+
+  try {
+    const res = await authFetch(`/api/videos/${encodeURIComponent(videoId)}/share`, {
+      method: "POST"
+    });
+
+    const contentType = res.headers.get("content-type") || "";
+    const data = contentType.includes("application/json")
+      ? await res.json()
+      : { error: await res.text() };
+
+    if (!res.ok || data.error) {
+      const message = contentType.includes("application/json")
+        ? (data.error || "Could not share video")
+        : "Could not share video. The video share API route is not available on the server.";
+      throw new Error(message);
+    }
+
+    const shareUrl = data.share_url || buildVideoShareUrl(videoId);
+
+    if (videoShareLink) {
+      videoShareLink.value = shareUrl;
+    }
+
+    if (videoSharePanel) {
+      videoSharePanel.classList.add("show");
+    }
+
+    await copyTextToClipboard(shareUrl);
+    await loadMyVideos();
+    showToast("Public video link copied");
+    return shareUrl;
+  } catch (err) {
+    console.error(err);
+    showToast(err.message || "Could not share video");
+    return null;
+  }
+};
+
+window.shareCurrentVideo = async function () {
+  await shareVideoById(currentModalVideo?.id);
+};
+
+window.copyCurrentVideoShareLink = async function () {
+  const videoId = currentModalVideo?.id;
+  const link = videoShareLink?.value || (videoId ? buildVideoShareUrl(videoId) : "");
+
+  if (!link) {
+    showToast("No share link available");
+    return;
+  }
+
+  try {
+    await copyTextToClipboard(link);
+    showToast("Link copied");
+  } catch (err) {
+    console.error(err);
+    showToast("Could not copy link");
+  }
+};
+
+
+window.openVideoCommentsFromCard = function (videoUrl, videoId) {
+  openVideoModal(videoUrl, videoId);
+  if (videoCommentsPanel) {
+    videoCommentsPanel.classList.add("show");
+  }
+};
+
+window.toggleVideoLikeById = async function (videoId, button = null) {
+  if (!videoId) {
+    showToast("Video not found");
+    return;
+  }
+
+  try {
+    const res = await authFetch(`/api/videos/${encodeURIComponent(videoId)}/like`, {
+      method: "POST"
+    });
+    const data = await res.json();
+
+    if (!res.ok || data.error) {
+      throw new Error(data.error || "Could not like video");
+    }
+
+    if (button) {
+      button.classList.toggle("active", Boolean(data.liked));
+    }
+
+    await loadMyVideos();
+  } catch (err) {
+    console.error(err);
+    showToast(err.message || "Could not like video");
+  }
+};
+
+window.toggleVideoLike = async function () {
+  const videoId = currentModalVideo?.id;
+
+  if (!videoId) {
+    showToast("Video not found");
+    return;
+  }
+
+  try {
+    const res = await authFetch(`/api/videos/${encodeURIComponent(videoId)}/like`, {
+      method: "POST"
+    });
+    const data = await res.json();
+
+    if (!res.ok || data.error) {
+      throw new Error(data.error || "Could not like video");
+    }
+
+    if (modalVideoLike) {
+      modalVideoLike.innerText = `❤️ Like (${Number(data.likes || 0)})`;
+      modalVideoLike.classList.toggle("video-like-active", Boolean(data.liked));
+    }
+
+    await loadMyVideos();
+  } catch (err) {
+    console.error(err);
+    showToast(err.message || "Could not like video");
+  }
+};
+
+window.toggleVideoComments = async function () {
+  const videoId = currentModalVideo?.id;
+
+  if (!videoId) {
+    showToast("Video not found");
+    return;
+  }
+
+  if (videoCommentsPanel) {
+    videoCommentsPanel.classList.toggle("show");
+
+    if (videoCommentsPanel.classList.contains("show")) {
+      setTimeout(() => {
+        videoCommentsPanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        if (videoCommentInput) videoCommentInput.focus();
+      }, 50);
+    }
+  }
+
+  await refreshVideoEngagement(videoId);
+};
+
+window.submitVideoComment = async function () {
+  const videoId = currentModalVideo?.id;
+  const comment = String(videoCommentInput?.value || "").trim();
+
+  if (!videoId) {
+    showToast("Video not found");
+    return;
+  }
+
+  if (!comment) {
+    showToast("Write a comment first");
+    return;
+  }
+
+  try {
+    const res = await authFetch(`/api/videos/${encodeURIComponent(videoId)}/comments`, {
+      method: "POST",
+      body: JSON.stringify({ comment })
+    });
+    const data = await res.json();
+
+    if (!res.ok || data.error) {
+      throw new Error(data.error || "Could not save comment");
+    }
+
+    if (videoCommentInput) {
+      videoCommentInput.value = "";
+    }
+
+    if (videoCommentsPanel) {
+      videoCommentsPanel.classList.add("show");
+    }
+
+    await refreshVideoEngagement(videoId);
+    await loadMyVideos();
+    showToast("Comment added");
+  } catch (err) {
+    console.error(err);
+    showToast(err.message || "Could not save comment");
+  }
+};
+
+async function performVideoDeleteById(videoId) {
+  if (!videoId) {
+    showToast("Video not found");
+    return;
+  }
+
+  try {
+    const res = await authFetch(`/api/videos/${encodeURIComponent(videoId)}`, {
+      method: "DELETE"
+    });
+    const data = await res.json();
+
+    if (!res.ok || data.error) {
+      throw new Error(data.error || "Could not delete video");
+    }
+
+    if (currentModalVideo?.id === videoId && typeof closeVideoModalPlayer === "function") {
+      closeVideoModalPlayer();
+    }
+
+    closeDeleteModal();
+    await loadMyVideos();
+    showToast("Video deleted");
+  } catch (err) {
+    console.error(err);
+    showToast(err.message || "Could not delete video");
+  }
+}
+
+window.deleteVideoById = async function (videoId) {
+  openVideoDeleteModal(videoId);
+};
+
+window.deleteCurrentVideo = async function () {
+  await deleteVideoById(currentModalVideo?.id);
+};
+
+window.closeVideoModalPlayer = function () {
+  if (modalVideo) {
+    modalVideo.pause();
+    modalVideo.removeAttribute("src");
+    modalVideo.load();
+  }
+
+  if (videoCommentsPanel) {
+    videoCommentsPanel.classList.remove("show");
+  }
+
+  if (videoSharePanel) {
+    videoSharePanel.classList.remove("show");
+  }
+
+  if (videoShareLink) {
+    videoShareLink.value = "";
+  }
+
+  if (videoCommentInput) {
+    videoCommentInput.value = "";
+  }
+
+  clearRecommendations("video");
+  clearCreatorMedia("video");
+
+  currentModalVideo = null;
+
+  if (videoModal) {
+    videoModal.style.display = "none";
+  }
+};
+
+if (closeVideoModal) {
+  closeVideoModal.onclick = window.closeVideoModalPlayer;
+}
+
+if (videoModal) {
+  videoModal.onclick = (e) => {
+    if (e.target === videoModal) {
+      window.closeVideoModalPlayer();
+    }
+  };
+}
+
+window.openVideoInNewTab = function (url) {
+  // Backward-compatible fallback for older cached buttons.
+  window.openVideoModal(url);
+};
+
+window.downloadVideo = async function (videoUrl, filename = "qeecko-video.mp4") {
+  try {
+    const res = await fetch(videoUrl);
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    console.error(err);
+    window.open(videoUrl, "_blank", "noopener,noreferrer");
+  }
+};
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function escapeJs(value) {
+  return String(value ?? "")
+    .replaceAll("\\", "\\\\")
+    .replaceAll("'", "\\'")
+    .replaceAll("\n", "\\n")
+    .replaceAll("\r", "");
+}
+
+
 // =========================
 // ENHANCE (FIXED)
 // =========================
@@ -5488,6 +9834,42 @@ async function uploadToSupabase(imageUrl, promptText, options = {}) {
     if (!userData.user) {
       console.log("NO USER");
       return;
+    }
+
+    // Kling Phase 1: the server already saves Kling outputs into Supabase Storage.
+    // In that case, avoid downloading and uploading the same image a second time.
+    const isAlreadyInQeeckoStorage =
+      typeof imageUrl === "string" &&
+      imageUrl.includes("/storage/v1/object/public/images/");
+
+    if (isAlreadyInQeeckoStorage) {
+      const { data: savedImage, error: dbError } = await supa
+        .from("images")
+        .insert([
+          {
+            user_id: userData.user.id,
+            image_url: imageUrl,
+            prompt: promptText,
+            is_favorite: false,
+            collection_id: collectionFilterId || null,
+            tags: extractTagsFromPrompt(promptText),
+            source_type: options.source_type || "generated",
+            source_image_url: options.source_image_url || null,
+            is_public: false,
+            moderation_status: "approved"
+          }
+        ])
+        .select("*")
+        .single();
+
+      if (dbError) {
+        console.error("GENERATED IMAGE DB SAVE ERROR:", dbError);
+        showToast("Generated image displayed, but database save failed");
+        return null;
+      }
+
+      await loadCloudHistory(true);
+      return savedImage;
     }
 
     // fetch image
@@ -5916,10 +10298,24 @@ window.removeImageFromAlbum = async function (item) {
 };
 
 
+window.showNewAlbumInput = function () {
+  if (!newCollectionNameEl) return;
+
+  newCollectionNameEl.classList.toggle("collapsed");
+
+  if (!newCollectionNameEl.classList.contains("collapsed")) {
+    newCollectionNameEl.focus();
+  }
+};
+
 window.createCollection = async function () {
   const name = (newCollectionNameEl?.value || "").trim();
 
   if (!name) {
+    if (newCollectionNameEl) {
+      newCollectionNameEl.classList.remove("collapsed");
+      newCollectionNameEl.focus();
+    }
     showToast("Enter an album name");
     return;
   }
@@ -5946,6 +10342,7 @@ window.createCollection = async function () {
   }
 
   newCollectionNameEl.value = "";
+  newCollectionNameEl.classList.add("collapsed");
   showToast("Album created");
   await loadCollections();
 };
@@ -6371,6 +10768,53 @@ async function copyPrompt(text) {
   }
 }
 
+const countedMediaViews = new Set();
+
+function getMediaViewCount(item) {
+  return Number(item?.view_count ?? item?.views ?? 0);
+}
+
+function bumpLocalMediaView(item) {
+  if (!item) return 0;
+  const next = getMediaViewCount(item) + 1;
+  item.view_count = next;
+  item.views = next;
+  return next;
+}
+
+function updateImageViewCountInDom(imageId, value) {
+  const el = document.getElementById(`imageViewCount-${imageId}`);
+  if (el) el.innerText = Number(value || 0).toLocaleString();
+}
+
+function updateVideoViewCountInDom(videoId, value) {
+  const el = document.getElementById(`videoViewCount-${videoId}`);
+  if (el) el.innerText = Number(value || 0).toLocaleString();
+}
+
+async function recordMediaView(type, id, item = null) {
+  if (!type || !id) return;
+
+  const safeType = type === "video" || type === "videos" ? "videos" : "images";
+  const key = `${safeType}:${id}`;
+
+  // Avoid counting repeated opens of the same media in the same browser session.
+  if (countedMediaViews.has(key)) return;
+  countedMediaViews.add(key);
+
+  const next = bumpLocalMediaView(item);
+  if (safeType === "videos") updateVideoViewCountInDom(id, next);
+  else updateImageViewCountInDom(id, next);
+
+  try {
+    await authFetch(`/api/${safeType}/${encodeURIComponent(id)}/view`, {
+      method: "POST"
+    });
+  } catch (err) {
+    console.warn("View tracking warning:", err);
+  }
+}
+
 async function markRecentlyViewed(item) {
   if (!item?.id) return;
 
@@ -6386,7 +10830,8 @@ async function markRecentlyViewed(item) {
 
 async function openGalleryItem(item) {
   await markRecentlyViewed(item);
-  openModal(item.image_url);
+  recordMediaView("images", item?.id, item);
+  openModal(item.image_url, item);
 }
 
 window.toggleRecentFilter = async function () {
@@ -6758,10 +11203,20 @@ async function loadCloudHistory(reset = true) {
   galleryLoading = false;
 }
 
+function closeGalleryMoreMenus(exceptMenu = null) {
+  document.querySelectorAll(".gallery-more-menu[open]").forEach(menu => {
+    if (menu !== exceptMenu) {
+      menu.open = false;
+      const parentCard = menu.closest(".gallery-card, .video-card");
+      if (parentCard) parentCard.classList.remove("more-menu-open");
+    }
+  });
+}
+
 function renderGalleryCard(item) {
 
   const card = document.createElement("div");
-  card.className = "gallery-card";
+  card.className = "gallery-card media-card media-card-image";
 
   const selectBox = document.createElement("input");
   selectBox.type = "checkbox";
@@ -6811,14 +11266,18 @@ function renderGalleryCard(item) {
   content.className = "gallery-content";
 
   const prompt = document.createElement("div");
-  prompt.className = "gallery-prompt";
+  prompt.className = "gallery-prompt media-card-title";
   prompt.innerText = item.prompt || "Untitled creation";
 
   const date = document.createElement("div");
-  date.className = "gallery-date";
+  date.className = "gallery-date media-card-meta";
   date.innerText = item.created_at
     ? new Date(item.created_at).toLocaleString()
     : "";
+
+  const mediaStats = document.createElement("div");
+  mediaStats.className = "gallery-date media-card-meta";
+  mediaStats.innerHTML = `❤️ ${Number(item.like_count || 0).toLocaleString()} • 💬 ${Number(item.comment_count || 0).toLocaleString()} • 👁 <span id="imageViewCount-${item.id}">${getMediaViewCount(item).toLocaleString()}</span>`;
 
   const tagsWrap = document.createElement("div");
   tagsWrap.className = "gallery-tags";
@@ -6836,9 +11295,10 @@ function renderGalleryCard(item) {
   });
 
   const actions = document.createElement("div");
-  actions.className = "gallery-actions";
+  actions.className = "gallery-actions compact-card-actions media-card-actions";
 
   const openBtn = document.createElement("button");
+  openBtn.className = "media-card-open-btn";
   openBtn.innerText = "Open";
   openBtn.onclick = () => openGalleryItem(item);
 
@@ -6847,6 +11307,7 @@ function renderGalleryCard(item) {
   useAsSourceBtn.onclick = () => {
     uploadedReferenceImage = item;
     renderUploadedImagePreview();
+    fillMainCreationPromptsFromSource(item);
     showToast("Image selected as reference");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -6888,6 +11349,12 @@ function renderGalleryCard(item) {
   upscaleBtn.onclick = () => upscaleImage(item);
   if (publicMode) upscaleBtn.style.display = "none";
 
+  const animateVideoBtn = document.createElement("button");
+  animateVideoBtn.innerText = "🎥 Animate";
+  animateVideoBtn.className = "video-animate-btn";
+  animateVideoBtn.onclick = () => generateVideoFromGalleryImage(item.id);
+  if (publicMode) animateVideoBtn.style.display = "none";
+
   const albumBtn = document.createElement("button");
   albumBtn.innerText = "Album";
   albumBtn.onclick = () => assignToCollection(item);
@@ -6926,33 +11393,98 @@ if (publicMode) albumBtn.style.display = "none";
   deleteBtn.onclick = () => openDeleteModal(item, card);
   if (publicMode) deleteBtn.style.display = "none";
 
+  const quickFavoriteBtn = document.createElement("button");
+  quickFavoriteBtn.className = "gallery-fav-action";
+  quickFavoriteBtn.innerText = isFavorite(item) ? "♥" : "♡";
+  if (isFavorite(item)) quickFavoriteBtn.classList.add("active");
+  quickFavoriteBtn.title = "Favorite";
+  quickFavoriteBtn.onclick = async (e) => {
+    e.stopPropagation();
+    await toggleFavorite(item, quickFavoriteBtn);
+    quickFavoriteBtn.innerText = isFavorite(item) ? "♥" : "♡";
+  };
+  if (publicMode) quickFavoriteBtn.style.display = "none";
+
+  const commentBtn = document.createElement("button");
+  commentBtn.innerText = "💬";
+  commentBtn.title = "Comments";
+  commentBtn.onclick = () => toggleCommentsBox(item.id);
+
+  const moreMenu = document.createElement("details");
+  moreMenu.className = "gallery-more-menu";
+
+  const moreSummary = document.createElement("summary");
+  moreSummary.innerText = "⋮";
+  moreSummary.title = "More actions";
+
+  const moreDropdown = document.createElement("div");
+  moreDropdown.className = "gallery-more-dropdown";
+
+  [
+    useAsSourceBtn,
+    downloadBtn,
+    copyBtn,
+    regenerateBtn,
+    variationBtn,
+    upscaleBtn,
+    animateVideoBtn,
+    albumBtn,
+    removeAlbumBtn,
+    tagBtn,
+    coverBtn,
+    deleteBtn
+  ].forEach(btn => moreDropdown.appendChild(btn));
+
+  moreMenu.addEventListener("toggle", () => {
+    card.classList.toggle("more-menu-open", moreMenu.open);
+    if (moreMenu.open) {
+      closeGalleryMoreMenus(moreMenu);
+    }
+  });
+
+  moreSummary.addEventListener("click", (e) => {
+    e.stopPropagation();
+  });
+
+  moreDropdown.addEventListener("click", () => {
+    moreMenu.open = false;
+    card.classList.remove("more-menu-open");
+  });
+
+  moreMenu.appendChild(moreSummary);
+  moreMenu.appendChild(moreDropdown);
+
   actions.appendChild(openBtn);
-  actions.appendChild(useAsSourceBtn);
-  actions.appendChild(downloadBtn);
-  actions.appendChild(copyBtn);
-  actions.appendChild(regenerateBtn);
-  actions.appendChild(variationBtn);
-  actions.appendChild(upscaleBtn);
-  actions.appendChild(albumBtn);
-  actions.appendChild(removeAlbumBtn);
-  actions.appendChild(tagBtn);
-  actions.appendChild(coverBtn);
-  actions.appendChild(deleteBtn);
+  actions.appendChild(quickFavoriteBtn);
+  actions.appendChild(commentBtn);
+  actions.appendChild(moreMenu);
 
   content.appendChild(prompt);
   content.appendChild(date);
+  if (item?.id) content.appendChild(mediaStats);
 
   if (publicMode) {
     const socialWrap = document.createElement("div");
     socialWrap.innerHTML = renderPublicSocialBlock(item);
     content.appendChild(socialWrap);
     scheduleHydratePublicSocialCards();
+  } else if (item?.id) {
+    const privateCommentsWrap = document.createElement("div");
+    privateCommentsWrap.innerHTML = renderCommentsHtml(item.id, []);
+    content.appendChild(privateCommentsWrap);
   }
   content.appendChild(tagsWrap);
   content.appendChild(actions);
 
-  if (!publicMode) card.appendChild(favoriteBtn);
-  card.appendChild(img);
+  const imageThumb = document.createElement("div");
+  imageThumb.className = "media-thumb image-thumb";
+  const imageBadge = document.createElement("span");
+  imageBadge.className = "media-type-badge";
+  imageBadge.innerText = "IMAGE";
+  imageThumb.appendChild(img);
+  imageThumb.appendChild(imageBadge);
+
+  card.appendChild(imageThumb);
   card.appendChild(content);
 
   galleryEl.appendChild(card);
@@ -7338,23 +11870,59 @@ async function loadAnalyticsDashboard() {
   }
 
   const s = data.summary || {};
+  const formatNumber = value => Number(value || 0).toLocaleString();
+  const formatMemberSince = value => {
+    if (!value) return "—";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "—";
+    return date.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+  };
+
   const cards = [
-    [s.total_images || 0, "Images generated"],
-    [s.favorite_images || 0, "Favorites"],
-    [s.public_images || 0, "Public images"],
-    [s.public_albums || 0, "Public albums"],
-    [s.credits || 0, "Credits available"],
-    [s.recent_views || 0, "Recent views"]
+    [formatNumber(s.total_images), "🖼 Images Generated"],
+    [formatNumber(s.total_videos), "🎥 Videos Generated"],
+    [formatNumber(s.followers), "👥 Followers"],
+    [formatNumber(s.profile_views), "👁 Profile Views"],
+
+    [formatNumber(s.likes_received), "❤️ Likes Received"],
+    [formatNumber(s.comments_received), "💬 Comments Received"],
+    [formatNumber(s.favorite_images), "⭐ Favorites"],
+    [formatNumber(s.credits), "💳 Credits Available"],
+
+    [formatNumber(s.public_images), "🌎 Public Images"],
+    [formatNumber(s.public_albums), "📁 Public Albums"],
+    [formatNumber(s.video_shares), "🔗 Video Shares"],
+    [formatMemberSince(s.member_since), "📅 Member Since"]
   ];
 
   analyticsGrid.innerHTML = cards.map(([value, label]) => `
     <div class="analytics-card"><strong>${value}</strong><span>${label}</span></div>
   `).join("");
 
+  const eventLabels = {
+    image_generated: "🖼 Generated an image",
+    image_variation: "🖼 Created image variations",
+    true_image_variation: "🖼 Created image variations",
+    image_upscaled: "✨ Upscaled an image",
+    video_generation: "🎥 Generated a video",
+    video_generated: "🎥 Generated a video",
+    image_to_video_generation: "🎥 Animated an image",
+    video_shared: "🔗 Shared a video",
+    image_liked: "❤️ Image liked",
+    video_liked: "❤️ Video liked",
+    image_commented: "💬 Image commented",
+    video_commented: "💬 Video commented",
+    creator_followed: "👥 New follower",
+    profile_updated: "👤 Updated profile"
+  };
+
+  const recentEvents = data.recent_events || [];
   analyticsRecent.innerHTML = `<strong>Recent activity</strong>` +
-    (data.recent_events || []).map(ev => `
-      <div class="prompt-history-item">${ev.event_type} — ${new Date(ev.created_at).toLocaleString()}</div>
-    `).join("");
+    (recentEvents.length ? recentEvents.map(ev => {
+      const label = eventLabels[ev.event_type] || ev.event_type || "Activity";
+      const eventDate = ev.created_at ? new Date(ev.created_at).toLocaleString() : "";
+      return `<div class="prompt-history-item">${label}${eventDate ? ` — ${eventDate}` : ""}</div>`;
+    }).join("") : `<div class="prompt-history-item">No recent activity yet.</div>`);
 }
 
 async function loadAdminStats() {
@@ -7690,6 +12258,33 @@ window.restoreAdminImage = async function (imageId) {
   await moderateImage(imageId, "approved", true);
 };
 
+window.moderateVideo = async function (videoId, moderation_status, is_public) {
+  const res = await authFetch("/api/admin/moderate-video", {
+    method: "POST",
+    body: JSON.stringify({ videoId, moderation_status, is_public })
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) return showToast(data.error || "Video moderation failed");
+  showToast("Video updated");
+  await loadAdminReports();
+  await loadAdminAuditLogs();
+};
+
+window.hideAdminVideo = async function (videoId) {
+  await moderateVideo(videoId, "hidden", false);
+};
+
+window.restoreAdminVideo = async function (videoId) {
+  await moderateVideo(videoId, "approved", true);
+};
+
+window.resolveAdminReportWithAction = async function (reportId, status, type, actionFn) {
+  if (typeof actionFn === "function") {
+    await actionFn();
+  }
+  await resolveAdminReport(reportId, status, type);
+};
+
 
 async function loadAdminReports() {
   if (!adminReportsList) return;
@@ -7710,20 +12305,30 @@ async function loadAdminReports() {
   }
 
   adminReportsList.innerHTML = reports.map(report => {
+    const type = report.report_type || (report.video ? "video" : "image");
     const image = report.image || {};
+    const video = report.video || {};
+    const media = type === "video" ? video : image;
+    const title = type === "video" ? "Video Report" : "Image Report";
+    const preview = type === "video"
+      ? (video.video_url ? `<video class="admin-thumb" src="${escapeHtml(video.video_url)}" muted preload="metadata"></video>` : "")
+      : (image.image_url ? `<img class="admin-thumb" src="${escapeHtml(image.image_url)}">` : "");
+
     return `
       <div class="admin-report-card">
         <div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;">
-          ${image.image_url ? `<img class="admin-thumb" src="${image.image_url}">` : ""}
+          ${preview}
           <div style="flex:1;min-width:220px;">
-            <strong>Report #${report.id}</strong>
+            <strong>${title} #${report.id}</strong>
             <div class="gallery-date">Reason: ${escapeHtml(report.reason || "other")} · Status: ${escapeHtml(report.status || "open")}</div>
-            <p>${escapeHtml(report.details || image.prompt || "No details provided.").slice(0, 220)}</p>
+            <p>${escapeHtml(report.details || media.prompt || "No details provided.").slice(0, 220)}</p>
             <div class="admin-report-actions">
-              <button class="secondary" onclick="resolveAdminReport('${report.id}', 'reviewed')">Mark Reviewed</button>
-              <button class="secondary" onclick="resolveAdminReport('${report.id}', 'dismissed')">Dismiss</button>
-              ${image.id ? `<button class="secondary" onclick="restoreAdminImage('${image.id}'); resolveAdminReport('${report.id}', 'action_taken')">Restore Image</button>` : ""}
-              ${image.id ? `<button class="danger" onclick="hideAdminImage('${image.id}'); resolveAdminReport('${report.id}', 'action_taken')">Hide Image</button>` : ""}
+              <button class="secondary" onclick="resolveAdminReport('${report.id}', 'reviewed', '${type}')">Mark Reviewed</button>
+              <button class="secondary" onclick="resolveAdminReport('${report.id}', 'dismissed', '${type}')">Dismiss</button>
+              ${type === "video" && video.id ? `<button class="secondary" onclick="resolveAdminReportWithAction('${report.id}', 'action_taken', 'video', () => restoreAdminVideo('${video.id}'))">Restore Video</button>` : ""}
+              ${type === "video" && video.id ? `<button class="danger" onclick="resolveAdminReportWithAction('${report.id}', 'action_taken', 'video', () => hideAdminVideo('${video.id}'))">Hide Video</button>` : ""}
+              ${type !== "video" && image.id ? `<button class="secondary" onclick="resolveAdminReportWithAction('${report.id}', 'action_taken', 'image', () => restoreAdminImage('${image.id}'))">Restore Image</button>` : ""}
+              ${type !== "video" && image.id ? `<button class="danger" onclick="resolveAdminReportWithAction('${report.id}', 'action_taken', 'image', () => hideAdminImage('${image.id}'))">Hide Image</button>` : ""}
             </div>
           </div>
         </div>
@@ -7732,10 +12337,10 @@ async function loadAdminReports() {
   }).join("");
 }
 
-window.resolveAdminReport = async function (reportId, status) {
+window.resolveAdminReport = async function (reportId, status, type = "image") {
   const res = await authFetch(`/api/admin/reports/${reportId}/resolve`, {
     method: "POST",
-    body: JSON.stringify({ status })
+    body: JSON.stringify({ status, type })
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) return showToast(data.error || "Could not update report");
@@ -7927,10 +12532,88 @@ async function loadAdminAuditLogs() {
 }
 
 
+
+function renderPublicCreatorVideoCard(video) {
+  const prompt = video.prompt || "Untitled video";
+  const duration = video.duration ? `${video.duration}s` : "";
+  const generationType = video.generation_type === "image_to_video" ? "🖼️→🎬 Image Video" : "🎬 Text Video";
+  const shareUrl = buildVideoShareUrl(video.id);
+
+  return `
+    <div class="video-card media-card media-card-video public-creator-video-card" data-video-id="${escapeHtml(video.id || "")}">
+      <video controls preload="metadata" src="${escapeHtml(video.video_url || "")}"></video>
+      <div class="video-card-content">
+        <div class="video-card-title media-card-title">${escapeHtml(prompt)}</div>
+        <div class="video-card-meta media-card-meta">${escapeHtml(generationType)}${duration ? " • " + escapeHtml(duration) : ""} • ❤️ ${Number(video.like_count || 0)} • 💬 ${Number(video.comment_count || 0)} • 👁 <span id="videoViewCount-${escapeHtml(video.id || "")}">${Number(video.view_count || 0).toLocaleString()}</span></div>
+        <div class="video-card-actions compact-card-actions media-card-actions">
+          <button class="secondary media-card-open-btn" onclick="openVideoModal('${escapeJs(video.video_url || "")}', '${escapeJs(video.id || "")}')">Open</button>
+          <button class="secondary video-card-like${video.liked ? " active" : ""}" title="Like" onclick="toggleVideoLikeById('${escapeJs(video.id || "")}', this)">♥</button>
+          <button class="secondary" title="Comments" onclick="openVideoCommentsFromCard('${escapeJs(video.video_url || "")}', '${escapeJs(video.id || "")}')">💬</button>
+          <details class="gallery-more-menu">
+            <summary title="More actions">⋮</summary>
+            <div class="gallery-more-dropdown">
+              <button class="secondary" onclick="downloadVideo('${escapeJs(video.video_url || "")}', 'qeecko-video.mp4')">Download</button>
+              <button class="secondary" onclick="copyTextToClipboard('${escapeJs(shareUrl)}').then(() => showToast('Link copied'))">Share</button>
+              <button class="secondary report-btn" onclick="reportVideo('${escapeJs(video.id || "")}')">Report</button>
+            </div>
+          </details>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderPublicCreatorImagesTab(images = []) {
+  galleryEl.innerHTML = "";
+  if (!images.length) {
+    galleryEl.innerHTML = galleryEmptyMessage();
+    return;
+  }
+  images.forEach(item => renderGalleryCard(item));
+  scheduleHydratePublicSocialCards?.();
+}
+
+function renderPublicCreatorVideosTab(videos = []) {
+  if (!videos.length) {
+    galleryEl.innerHTML = `
+      <div class="gallery-empty">
+        <strong>No public videos yet</strong>
+        <p>This creator has not shared any videos yet.</p>
+      </div>
+    `;
+    return;
+  }
+
+  galleryEl.innerHTML = videos.map(renderPublicCreatorVideoCard).join("");
+}
+
+window.switchPublicCreatorTab = function (tab) {
+  const activeTab = tab === "videos" ? "videos" : "images";
+  const imagesBtn = document.getElementById("publicCreatorImagesTabBtn");
+  const videosBtn = document.getElementById("publicCreatorVideosTabBtn");
+
+  imagesBtn?.classList.toggle("active", activeTab === "images");
+  videosBtn?.classList.toggle("active", activeTab === "videos");
+
+  if (activeTab === "videos") {
+    renderPublicCreatorVideosTab(window.currentPublicCreatorVideos || []);
+  } else {
+    renderPublicCreatorImagesTab(window.currentPublicCreatorImages || []);
+  }
+};
+
+function formatMemberSince(value) {
+  if (!value) return "—";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "—";
+  return date.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+}
+
 async function loadPublicCreatorProfile(username) {
   setPromptToolsVisible(false);
   publicMode = true;
-  document.body.classList.add("public-mode");
+  document.body.classList.remove("public-video-view");
+  document.body.classList.add("public-mode", "compact-view");
   setPublicProfileView(true);
   authDiv.style.display = "none";
   appDiv.style.display = "block";
@@ -7955,6 +12638,8 @@ async function loadPublicCreatorProfile(username) {
   const viewer = data.viewer || {};
   window.currentPublicCreatorId = profile.id;
   window.currentPublicCreatorFollowing = viewer.following === true;
+  window.currentPublicCreatorImages = data.images || [];
+  window.currentPublicCreatorVideos = data.videos || [];
 
   publicBannerEl.style.display = "block";
   publicBannerEl.innerHTML = `
@@ -7971,18 +12656,24 @@ async function loadPublicCreatorProfile(username) {
         <div class="analytics-card"><strong>${Number(stats.followers || 0).toLocaleString()}</strong><span>Followers</span></div>
         <div class="analytics-card"><strong>${Number(stats.following || 0).toLocaleString()}</strong><span>Following</span></div>
         <div class="analytics-card"><strong>${Number(stats.total_images || 0).toLocaleString()}</strong><span>Images</span></div>
-        <div class="analytics-card"><strong>${Number(stats.total_likes || 0).toLocaleString()}</strong><span>Likes Received</span></div>
+        <div class="analytics-card"><strong>${Number(stats.total_videos || 0).toLocaleString()}</strong><span>Videos</span></div>
+        <div class="analytics-card"><strong>${Number(stats.total_likes || 0).toLocaleString()}</strong><span>❤️ Likes Received</span></div>
+        <div class="analytics-card"><strong>${Number(stats.comments_received || 0).toLocaleString()}</strong><span>💬 Comments Received</span></div>
+        <div class="analytics-card"><strong>${Number(stats.profile_views || 0).toLocaleString()}</strong><span>👁 Profile Views</span></div>
+        <div class="analytics-card"><strong>${escapeHtml(formatMemberSince(stats.member_since || profile.created_at))}</strong><span>📅 Member Since</span></div>
       </div>
       <div class="gallery-actions" style="justify-content:flex-start;">
         ${viewer.is_owner ? "" : `<button id="followCreatorBtn" class="primary" onclick="toggleFollowCreator()">${viewer.following ? "Unfollow" : "Follow"}</button>`}
         ${viewer.is_owner ? "" : `<button class="report-btn" onclick="reportCreator('${escapeHtml(profile.id)}', '${escapeHtml(profile.username || '')}')">Report</button>`}
       </div>
+      <div class="creator-content-tabs">
+        <button id="publicCreatorImagesTabBtn" class="secondary active" onclick="switchPublicCreatorTab('images')">🖼 Images (${Number(stats.total_images || 0).toLocaleString()})</button>
+        <button id="publicCreatorVideosTabBtn" class="secondary" onclick="switchPublicCreatorTab('videos')">🎥 Videos (${Number(stats.total_videos || 0).toLocaleString()})</button>
+      </div>
     </div>
   `;
 
-  galleryEl.innerHTML = "";
-  (data.images || []).forEach(item => renderGalleryCard(item));
-  if (!(data.images || []).length) galleryEl.innerHTML = galleryEmptyMessage();
+  renderPublicCreatorImagesTab(window.currentPublicCreatorImages || []);
 
   await loadCredits();
 }
@@ -7990,6 +12681,8 @@ async function loadPublicCreatorProfile(username) {
 
 window.currentPublicCreatorId = null;
 window.currentPublicCreatorFollowing = false;
+window.currentPublicCreatorImages = [];
+window.currentPublicCreatorVideos = [];
 
 window.toggleFollowCreator = async function () {
   if (!window.currentPublicCreatorId) return showToast("Creator not found");
@@ -8037,6 +12730,7 @@ function renderDiscoveryImages(images = [], emptyTitle = "No images found", empt
 window.loadSavedImages = async function () {
   setPromptToolsVisible(false);
   setPublicProfileView(true);
+  setHomeGeneratorHidden(true);
   publicMode = true;
   document.body.classList.add("public-mode");
   authDiv.style.display = "none";
@@ -8065,7 +12759,7 @@ window.loadSavedImages = async function () {
   galleryEl.innerHTML = "";
 
   if (!images.length) {
-    galleryEl.innerHTML = `<div class="gallery-empty"><strong>No saved images yet</strong><p>Use Save on public images, trending images, or following feed to bookmark them here.</p></div>`;
+    galleryEl.innerHTML = qeeckoEmptyStateHTML({ icon: "🔖", title: "No saved images yet", text: "Use Save on public images, trending images, or following feed to bookmark them here.", actions: [{ label: "Browse Trending", className: "primary", onclick: "loadTrending(\'images\')" }, { label: "Discover Creators", onclick: "loadTrendingCreators()" }] });
     return;
   }
 
@@ -8080,6 +12774,7 @@ window.loadSavedImages = async function () {
 window.loadFollowingFeed = async function () {
   setPromptToolsVisible(false);
   setPublicProfileView(true);
+  setHomeGeneratorHidden(true);
   publicMode = true;
   document.body.classList.add("public-mode");
   authDiv.style.display = "none";
@@ -8093,7 +12788,7 @@ window.loadFollowingFeed = async function () {
 
   publicBannerEl.style.display = "block";
   publicBannerEl.innerHTML = `<div class="public-profile-card"><h2>Following Feed</h2><p>Recent public creations from creators you follow.</p></div>`;
-  galleryEl.innerHTML = `<div class="gallery-loader">Loading following feed...</div>`;
+  galleryEl.innerHTML = qeeckoLoadingGrid("Loading following feed...", 6);
   imageGrid.innerHTML = "";
 
   const res = await authFetch("/api/feed/following");
@@ -8104,21 +12799,35 @@ window.loadFollowingFeed = async function () {
     return;
   }
 
-  const images = data.images || [];
+  const feedItems = Array.isArray(data.items) && data.items.length
+    ? data.items
+    : [
+        ...(data.images || []).map(image => ({ type: "image", image, created_at: image.created_at })),
+        ...(data.videos || []).map(video => ({ type: "video", video, created_at: video.created_at }))
+      ].sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+
   galleryEl.innerHTML = "";
 
-  if (!images.length) {
-    galleryEl.innerHTML = `<div class="gallery-empty"><strong>No followed creators yet</strong><p>Visit public creator profiles and follow creators to build your feed.</p></div>`;
+  if (!feedItems.length) {
+    galleryEl.innerHTML = qeeckoEmptyStateHTML({ icon: "❤️", title: "Your feed is empty", text: "Follow creators to see their latest images and videos here.", actions: [{ label: "Discover Creators", className: "primary", onclick: "loadTrendingCreators()" }, { label: "Browse Trending", onclick: "loadTrending(\'images\')" }] });
     return;
   }
 
-  // Render in public mode so cards show only Open, Download, Copy,
-  // and include Likes/Comments.
   publicMode = true;
   document.body.classList.add("public-mode");
   setPublicProfileView(true);
 
-  images.forEach(item => renderGalleryCard(item));
+  feedItems.forEach(item => {
+    if (item.type === "video" && item.video) {
+      galleryEl.insertAdjacentHTML("beforeend", renderPublicCreatorVideoCard(item.video));
+      return;
+    }
+
+    if (item.image) {
+      renderGalleryCard(item.image);
+    }
+  });
+
   scheduleHydratePublicSocialCards?.();
 };
 
@@ -8143,7 +12852,7 @@ function renderTrendingCreatorCard(creator) {
         </div>
         <p class="gallery-prompt" style="height:auto;min-height:38px;">${escapeHtml(creator.bio || "Qeecko AI creator")}</p>
 
-        <div class="analytics-grid" style="grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;">
+        <div class="analytics-grid" style="grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px;">
           <div class="analytics-card" style="padding:10px;">
             <strong id="creatorFollowers-${escapeHtml(creatorId)}">${Number(stats.followers || 0).toLocaleString()}</strong>
             <span>Followers</span>
@@ -8151,6 +12860,10 @@ function renderTrendingCreatorCard(creator) {
           <div class="analytics-card" style="padding:10px;">
             <strong>${Number(stats.public_images || 0).toLocaleString()}</strong>
             <span>Images</span>
+          </div>
+          <div class="analytics-card" style="padding:10px;">
+            <strong>${Number(stats.public_videos || 0).toLocaleString()}</strong>
+            <span>Videos</span>
           </div>
           <div class="analytics-card" style="padding:10px;">
             <strong>${Number(stats.likes_received || 0).toLocaleString()}</strong>
@@ -8165,6 +12878,21 @@ function renderTrendingCreatorCard(creator) {
         </div>
       </div>
     </div>
+  `;
+}
+
+function renderCreatorDiscoverySection(title, description, creators) {
+  const list = Array.isArray(creators) ? creators : [];
+  if (!list.length) return "";
+
+  return `
+    <section class="creator-discovery-section">
+      <h3>${escapeHtml(title)}</h3>
+      <p>${escapeHtml(description)}</p>
+      <div class="creator-discovery-grid">
+        ${list.map(renderTrendingCreatorCard).join("")}
+      </div>
+    </section>
   `;
 }
 
@@ -8202,6 +12930,7 @@ window.toggleTrendingCreatorFollow = async function (creatorId) {
 window.loadTrendingCreators = async function () {
   setPromptToolsVisible(false);
   setPublicProfileView(true);
+  setHomeGeneratorHidden(true);
   publicMode = true;
   document.body.classList.add("public-mode");
   authDiv.style.display = "none";
@@ -8212,35 +12941,68 @@ window.loadTrendingCreators = async function () {
   creditHistoryPanel?.classList.remove("show");
   notificationPanel?.classList.remove("show");
   adminPanel.classList.remove("show");
+  hideVideoModule?.();
+
+  if (window.location.pathname !== "/creators") {
+    history.pushState({}, "", "/creators");
+  }
 
   publicBannerEl.style.display = "block";
-  publicBannerEl.innerHTML = `<div class="public-profile-card"><h2>Trending Creators</h2><p>Creators ranked by followers, public images, and likes received.</p></div>`;
-  galleryEl.innerHTML = `<div class="gallery-loader">Loading trending creators...</div>`;
+  publicBannerEl.innerHTML = `
+    <div class="public-profile-card">
+      <h2>Discover Creators</h2>
+      <p>Find featured, trending, and active Qeecko creators ranked by followers, media, likes, and views.</p>
+    </div>
+  `;
+  galleryEl.innerHTML = qeeckoLoadingGrid("Loading creator discovery...", 6);
   imageGrid.innerHTML = "";
 
-  const res = await authFetch("/api/trending-creators");
-  const data = await res.json();
+  const res = await authFetch("/api/creator-discovery");
+  const data = await res.json().catch(() => ({}));
 
   if (!res.ok) {
-    galleryEl.innerHTML = `<div class="gallery-empty"><strong>Trending creators unavailable</strong><p>${escapeHtml(data.error || "Try again later.")}</p></div>`;
+    galleryEl.innerHTML = `<div class="gallery-empty"><strong>Creator discovery unavailable</strong><p>${escapeHtml(data.error || "Try again later.")}</p></div>`;
     return;
   }
 
-  const creators = data.creators || [];
+  const featured = data.featured || [];
+  const trending = data.trending || data.creators || [];
+  const newCreators = data.new_creators || [];
+
   galleryEl.innerHTML = "";
 
-  if (!creators.length) {
-    galleryEl.innerHTML = `<div class="gallery-empty"><strong>No trending creators yet</strong><p>Public creators will appear here after they share images and gain engagement.</p></div>`;
+  if (!featured.length && !trending.length && !newCreators.length) {
+    galleryEl.innerHTML = qeeckoEmptyStateHTML({ icon: "👥", title: "No creators found", text: "Public creators will appear here after they share images and videos.", actions: [{ label: "Create Image", className: "primary", onclick: "goHomeToImages()" }, { label: "Create Video", onclick: "goHomeToVideos()" }] });
     return;
   }
 
-  galleryEl.innerHTML = creators.map(renderTrendingCreatorCard).join("");
+  galleryEl.innerHTML = [
+    renderCreatorDiscoverySection("⭐ Featured Creators", "Creators with strong engagement across images and videos.", featured),
+    renderCreatorDiscoverySection("🔥 Trending Creators", "Ranked by views, likes, followers, images, and videos.", trending),
+    renderCreatorDiscoverySection("🆕 Active Creators", "Creators with recently growing portfolios and engagement.", newCreators)
+  ].filter(Boolean).join("");
 };
 
 
-window.loadTrendingImages = async function () {
+function renderTrendingTabs(activeTab = "images") {
+  return `
+    <div class="public-profile-card">
+      <h2>🔥 Trending</h2>
+      <p>Public images and videos ranked by views, likes, comments, and recent activity.</p>
+      <div class="trending-tabs">
+        <button class="${activeTab === "images" ? "active" : ""}" onclick="loadTrending('images')">🖼 Images</button>
+        <button class="${activeTab === "videos" ? "active" : ""}" onclick="loadTrending('videos')">🎥 Videos</button>
+      </div>
+    </div>
+  `;
+}
+
+window.loadTrending = async function (tab = "images") {
+  const activeTab = tab === "videos" ? "videos" : "images";
+
   setPromptToolsVisible(false);
   setPublicProfileView(true);
+  setHomeGeneratorHidden(true);
   publicMode = true;
   document.body.classList.add("public-mode");
   authDiv.style.display = "none";
@@ -8251,14 +13013,38 @@ window.loadTrendingImages = async function () {
   creditHistoryPanel?.classList.remove("show");
   notificationPanel?.classList.remove("show");
   adminPanel.classList.remove("show");
+  hideVideoModule?.();
+
+  if (window.location.pathname !== `/trending/${activeTab}`) {
+    history.pushState({}, "", `/trending/${activeTab}`);
+  }
 
   publicBannerEl.style.display = "block";
-  publicBannerEl.innerHTML = `<div class="public-profile-card"><h2>Trending Images</h2><p>Public images ranked by likes, comments, and views from the last 7 days.</p></div>`;
-  galleryEl.innerHTML = `<div class="gallery-loader">Loading trending images...</div>`;
+  publicBannerEl.innerHTML = renderTrendingTabs(activeTab);
+  galleryEl.innerHTML = qeeckoLoadingGrid(`Loading trending ${activeTab}...`, 6);
   imageGrid.innerHTML = "";
 
+  if (activeTab === "videos") {
+    const res = await fetch("/api/trending-videos?days=7");
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      galleryEl.innerHTML = `<div class="gallery-empty"><strong>Trending videos unavailable</strong><p>${escapeHtml(data.error || "Try again later.")}</p></div>`;
+      return;
+    }
+
+    const videos = data.videos || [];
+    if (!videos.length) {
+      galleryEl.innerHTML = qeeckoEmptyStateHTML({ icon: "🎥", title: "No trending videos yet", text: "Public videos will appear here after views, likes, or comments.", actions: [{ label: "Create Video", className: "primary", onclick: "goHomeToVideos()" }, { label: "View Images", onclick: "loadTrending(\'images\')" }] });
+      return;
+    }
+
+    galleryEl.innerHTML = videos.map(renderPublicCreatorVideoCard).join("");
+    return;
+  }
+
   const res = await fetch("/api/trending-images?days=7");
-  const data = await res.json();
+  const data = await res.json().catch(() => ({}));
 
   if (!res.ok) {
     galleryEl.innerHTML = `<div class="gallery-empty"><strong>Trending unavailable</strong><p>${escapeHtml(data.error || "Try again later.")}</p></div>`;
@@ -8269,18 +13055,24 @@ window.loadTrendingImages = async function () {
   galleryEl.innerHTML = "";
 
   if (!images.length) {
-    galleryEl.innerHTML = `<div class="gallery-empty"><strong>No trending images yet</strong><p>Public images will appear here after likes, comments, or views.</p></div>`;
+    galleryEl.innerHTML = qeeckoEmptyStateHTML({ icon: "🔥", title: "No trending images yet", text: "Public images will appear here after likes, comments, or views.", actions: [{ label: "Create Image", className: "primary", onclick: "goHomeToImages()" }, { label: "View Videos", onclick: "loadTrending(\'videos\')" }] });
     return;
   }
 
-  // Render in public mode so cards show only Open, Download, Copy,
-  // and include Likes/Comments.
   publicMode = true;
   document.body.classList.add("public-mode");
   setPublicProfileView(true);
 
   images.forEach(item => renderGalleryCard(item));
   scheduleHydratePublicSocialCards?.();
+};
+
+window.loadTrendingImages = async function () {
+  await loadTrending("images");
+};
+
+window.loadTrendingVideos = async function () {
+  await loadTrending("videos");
 };
 
 async function trackImageView(imageId) {
@@ -8291,6 +13083,28 @@ async function trackImageView(imageId) {
     console.warn("Image view tracking skipped", err);
   }
 }
+
+
+// Close Buy Credits dropdown when clicking/tapping outside of it.
+// Uses pointerdown capture so it works even if other click handlers stop propagation.
+document.addEventListener("pointerdown", function (event) {
+  document.querySelectorAll(".buy-credits-menu[open]").forEach(function (menu) {
+    if (!menu.contains(event.target)) {
+      menu.removeAttribute("open");
+    }
+  });
+}, true);
+
+// Close the Buy Credits dropdown after selecting a package.
+document.addEventListener("click", function (event) {
+  const buyButton = event.target.closest(".buy-credits-dropdown button");
+  if (!buyButton) return;
+
+  const menu = buyButton.closest(".buy-credits-menu");
+  if (menu) {
+    menu.removeAttribute("open");
+  }
+});
 
 
 bootAppFromSession();
